@@ -3,187 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY - THE LAST WAR</title>
+    <title>ASSER GALAXY V29 - THE AWAKENING</title>
     <style>
-        :root { --b: #00f2ff; --g: #ffd700; --r: #ff0044; --p: #bc13fe; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: #fff; touch-action: none; }
+        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --purple: #bc13fe; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; touch-action: none; user-select: none; }
         
-        /* القوائم */
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001, #000); z-index: 1000; }
-        .garage { display: flex; gap: 10px; margin: 20px 0; }
-        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 80px; text-align: center; background: #050505; transition: 0.3s; }
-        .ship-box.active { border-color: var(--b); box-shadow: 0 0 20px var(--b); transform: scale(1.1); }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
 
-        /* --- تصميم السفن الهندسية المركبة --- */
-        .art { position: relative; width: 50px; height: 50px; margin: 0 auto 5px; }
-        .layer { position: absolute; width: 100%; height: 100%; }
-        /* سفينة 1: المقاتلة الزرقاء */
-        .s0 .l1 { background: var(--b); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.4; }
-        .s0 .l2 { background: #fff; clip-path: polygon(50% 20%, 30% 100%, 70% 100%); }
-        /* سفينة 2: الصقر الذهبي */
-        .s1 .l1 { background: var(--g); clip-path: polygon(0% 30%, 50% 0%, 100% 30%, 50% 100%); opacity: 0.6; }
-        .s1 .l2 { background: #fff; clip-path: polygon(40% 0%, 60% 0%, 60% 100%, 40% 100%); }
-        /* سفينة 3: المدمرة البيضاء */
-        .s2 .l1 { background: #fff; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); opacity: 0.5; }
-        .s2 .l2 { background: var(--b); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001233 0%, #000 100%); z-index: 1000; }
+        .garage { display: flex; gap: 15px; margin: 20px 0; }
+        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 85px; text-align: center; background: rgba(0,0,0,0.6); }
+        .ship-box.active { border-color: var(--blue); box-shadow: 0 0 20px var(--blue); transform: scale(1.1); }
+        .svg-icon { width: 50px; height: 50px; margin-bottom: 5px; }
 
-        .btn { padding: 15px 30px; background: var(--b); border: none; border-radius: 50px; font-weight: bold; color: #000; margin: 10px; box-shadow: 0 5px 15px rgba(0,242,255,0.4); }
+        .btn { padding: 15px 35px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 18px; box-shadow: 0 5px 15px rgba(0,242,255,0.4); }
 
-        /* اللعب */
-        #ui { position: absolute; top: 10px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 22px; text-shadow: 2px 2px #000; }
-        #player { position: absolute; bottom: 130px; width: 60px; height: 60px; z-index: 200; filter: drop-shadow(0 0 10px var(--b)); }
+        #ui { position: absolute; top: 20px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 20px; }
+        #player { position: absolute; bottom: 130px; width: 70px; height: 70px; z-index: 200; filter: drop-shadow(0 0 10px var(--blue)); }
         
-        .bullet { position: absolute; width: 6px; height: 25px; background: #fff; box-shadow: 0 0 15px var(--b); border-radius: 5px; z-index: 150; }
-        .enemy { position: absolute; width: 70px; height: 70px; z-index: 100; filter: drop-shadow(0 0 10px var(--r)); }
-        .e-shape { width: 100%; height: 100%; background: var(--r); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 20%); border: 2px solid #fff; }
+        .bullet { position: absolute; width: 6px; height: 30px; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; }
+        .enemy { position: absolute; width: 85px; height: 85px; z-index: 100; }
+        .bomb { position: absolute; width: 25px; height: 25px; background: #ffea00; border-radius: 50%; box-shadow: 0 0 20px var(--red); border: 2px solid #fff; }
 
-        .boss { position: absolute; width: 220px; height: 130px; z-index: 110; background: var(--p); clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 50% 70%, 10% 100%); border: 3px solid #fff; transition: background 0.1s; }
-        .hp-bar { position: absolute; top: -20px; width: 100%; height: 12px; background: #222; border: 2px solid #fff; border-radius: 6px; overflow: hidden; }
-        .hp-f { height: 100%; background: var(--r); width: 100%; transition: width 0.2s; }
+        .boss { position: absolute; width: 220px; height: 150px; z-index: 110; text-align: center; }
+        .hp-bar { width: 100%; height: 12px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
+        .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.2s; }
 
-        #ctrls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 60px; z-index: 2000; }
-        .c-btn { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; backdrop-filter: blur(5px); }
+        #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 60px; z-index: 2000; }
+        .ctrl-btn { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; }
     </style>
 </head>
 <body>
 
 <div id="lobby" class="screen">
-    <h1 style="font-size: 40px; color:var(--b); margin:0;">ASSER GALAXY</h1>
-    <p style="color:var(--g); font-size: 20px;">💰 COINS: <span id="coins">0</span> | STAGE: <span id="stage">1</span></p>
-    <div class="garage">
-        <div class="ship-box active" onclick="sel(0)"><div class="art s0"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv0">1</span></div>
-        <div class="ship-box" onclick="sel(1)"><div class="art s1"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv1">1</span></div>
-        <div class="ship-box" onclick="sel(2)"><div class="art s2"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv2">1</span></div>
-    </div>
-    <button class="btn" onclick="upgr()">UPGRADE (500 💰)</button>
-    <button class="btn" style="background:var(--g)" onclick="start()">BATTLE START</button>
+    <h1 style="color: var(--blue); font-size: 38px;">ASSER GALAXY</h1>
+    <div style="color: var(--gold); margin-bottom: 20px;">💰 COINS: <span id="c-val">0</span> | STAGE: <span id="s-val">1</span></div>
+    
+    <div class="garage" id="garage">
+        </div>
+
+    <button class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
+    <button class="btn" style="background: var(--gold); margin-top: 15px;" onclick="start()">BATTLE START</button>
 </div>
 
 <div id="ui">
-    <div id="lives" style="color:var(--r)"></div>
-    <div style="color:var(--g)">💰 <span id="g-c">0</span></div>
-    <div>STAGE: <span id="g-s">1</span></div>
+    <div id="lives-ui"></div>
+    <div style="color: var(--gold);">💰 <span id="g-c">0</span></div>
+    <div style="color: var(--blue);">STAGE <span id="g-s">1</span></div>
 </div>
 
 <div id="player" style="display:none;"></div>
-<div id="ctrls">
-    <div class="c-btn" id="lB">⬅️</div>
-    <div class="c-btn" id="rB">➡️</div>
+<div id="controls">
+    <div class="ctrl-btn" id="lBtn">⬅️</div>
+    <div class="ctrl-btn" id="rBtn">➡️</div>
 </div>
 
 <script>
-    let db = { c: parseInt(localStorage.getItem('as27_c'))||0, s: parseInt(localStorage.getItem('as27_s'))||1, id: 0, l: JSON.parse(localStorage.getItem('as27_l'))||[1,1,1] };
-    let game = false, hp = 3, kill = 0, isB = false, px = 50, bx = 50, bd = 1;
+    const ships = [
+        `<svg class="svg-icon" viewBox="0 0 100 100"><polygon points="50,5 95,95 50,75 5,95" fill="#00f2ff"/><rect x="45" y="40" width="10" height="30" fill="#fff"/></svg>`,
+        `<svg class="svg-icon" viewBox="0 0 100 100"><path d="M50 5 L100 80 L80 100 L50 80 L20 100 L0 80 Z" fill="#ffd700"/><circle cx="50" cy="50" r="10" fill="#fff"/></svg>`,
+        `<svg class="svg-icon" viewBox="0 0 100 100"><path d="M10 20 L50 0 L90 20 L90 80 L50 100 L10 80 Z" fill="#fff"/><path d="M30 40 L70 40 L50 70 Z" fill="#00f2ff"/></svg>`
+    ];
 
-    function sync() {
-        localStorage.setItem('as27_c', db.c); localStorage.setItem('as27_s', db.s); localStorage.setItem('as27_l', JSON.stringify(db.l));
-        document.getElementById('coins').innerText = db.c; document.getElementById('stage').innerText = db.s;
-        for(let i=0;i<3;i++) document.getElementById('lv'+i).innerText = db.l[i];
+    let state = {
+        coins: parseInt(localStorage.getItem('as_c')) || 0,
+        stage: parseInt(localStorage.getItem('as_s')) || 1,
+        shipId: 0,
+        lvls: JSON.parse(localStorage.getItem('as_l')) || [1, 1, 1]
+    };
+
+    let active = false, lives = 3, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
+
+    function save() {
+        localStorage.setItem('as_c', state.coins);
+        localStorage.setItem('as_s', state.stage);
+        localStorage.setItem('as_l', JSON.stringify(state.lvls));
+        document.getElementById('c-val').innerText = state.coins;
+        document.getElementById('s-val').innerText = state.stage;
+        renderGarage();
     }
 
-    function sel(i) { db.id = i; document.querySelectorAll('.ship-box').forEach((b,x)=>b.className=x==i?'ship-box active':'ship-box'); sync(); }
-    
-    function upgr() { if(db.c>=500 && db.l[db.id]<5) { db.c-=500; db.l[db.id]++; sync(); } }
+    function renderGarage() {
+        const g = document.getElementById('garage');
+        g.innerHTML = ships.map((s, i) => `
+            <div class="ship-box ${state.shipId==i?'active':''}" onclick="state.shipId=${i};save();">
+                ${s}
+                <div>Lv ${state.lvls[i]}</div>
+            </div>
+        `).join('');
+    }
+
+    function upgrade() {
+        if(state.coins >= 500) { state.coins -= 500; state.lvls[state.shipId]++; save(); }
+    }
 
     function start() {
-        document.getElementById('lobby').style.display='none';
-        document.getElementById('ui').style.display='flex';
-        document.getElementById('ctrls').style.display='flex';
-        let p = document.getElementById('player');
-        p.style.display='block';
-        p.innerHTML = document.querySelectorAll('.art')[db.id].innerHTML;
-        game = true; hp = 3 + db.l[db.id]; kill = 0; isB = false; px = 50;
-        upUI(); spawnE(); shoot();
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById('ui').style.display = 'flex';
+        document.getElementById('controls').style.display = 'flex';
+        const p = document.getElementById('player');
+        p.style.display = 'block';
+        p.innerHTML = ships[state.shipId];
+        
+        active = true; lives = 3 + state.lvls[state.shipId];
+        kills = 0; isBoss = false; px = 50;
+        updateUI(); spawnEnemy(); shoot();
     }
 
-    function upUI() {
-        document.getElementById('lives').innerText = "❤️".repeat(hp);
-        document.getElementById('g-c').innerText = db.c;
-        document.getElementById('g-s').innerText = db.s;
+    function updateUI() {
+        document.getElementById('lives-ui').innerText = "❤️".repeat(lives);
+        document.getElementById('g-c').innerText = state.coins;
+        document.getElementById('g-s').innerText = state.stage;
     }
 
     function shoot() {
-        if(!game) return;
-        let b = document.createElement('div'); b.className = 'bullet';
-        let r = document.getElementById('player').getBoundingClientRect();
-        b.style.left = (r.left + r.width/2 - 3) + 'px'; b.style.bottom = (window.innerHeight - r.top) + 'px';
+        if(!active) return;
+        const b = document.createElement('div'); b.className = 'bullet';
+        const r = document.getElementById('player').getBoundingClientRect();
+        b.style.left = (r.left + r.width/2 - 3) + 'px';
+        b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
-        let m = setInterval(()=> {
+
+        let m = setInterval(() => {
             let y = parseFloat(b.style.bottom); b.style.bottom = (y + 18) + 'px';
             let bR = b.getBoundingClientRect();
-            document.querySelectorAll('.enemy, .boss').forEach(en => {
-                let eR = en.getBoundingClientRect();
-                if(bR.left < eR.right && bR.right > eR.left && bR.top < eR.bottom && bR.bottom > eR.top) {
-                    if(en.classList.contains('boss')) {
-                        en.hp -= (db.l[db.id] * 2); // قوة طلقات أعلى
-                        en.style.background = '#fff'; setTimeout(()=>en.style.background='var(--p)', 50);
-                        en.querySelector('.hp-f').style.width = (en.hp/en.max*100)+'%';
-                        if(en.hp<=0) { en.remove(); db.c+=1000; db.s++; alert("STAGE CLEAR!"); location.reload(); }
-                    } else { en.remove(); db.c+=30; kill++; upUI(); if(kill==10) spawnB(); }
+            document.querySelectorAll('.enemy, .boss').forEach(t => {
+                let tR = t.getBoundingClientRect();
+                if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
+                    if(t.classList.contains('boss')) {
+                        t.hp -= state.lvls[state.shipId];
+                        t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
+                        if(t.hp <= 0) { t.remove(); state.coins += 1000; state.stage++; location.reload(); }
+                    } else {
+                        t.remove(); state.coins += 25; kills++; updateUI();
+                        if(kills === 10) spawnBoss();
+                    }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, Math.max(100, 400 - (db.l[db.id]*60)));
+        setTimeout(shoot, Math.max(100, 450 - (state.lvls[state.shipId]*50)));
     }
 
-    function spawnE() {
-        if(!game || isB) return;
-        let e = document.createElement('div'); e.className = 'enemy';
-        e.innerHTML = '<div class="e-shape"></div>';
-        e.style.left = Math.random()*80 + 'vw'; e.style.top = '-100px';
+    function spawnEnemy() {
+        if(!active || isBoss) return;
+        const e = document.createElement('div'); e.className = 'enemy';
+        e.innerHTML = `<svg viewBox="0 0 100 100"><polygon points="20,0 80,0 100,50 80,100 20,100 0,50" fill="#ff0044" stroke="#fff" stroke-width="3"/></svg>`;
+        e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
-        let m = setInterval(()=> {
-            if(!game) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (db.s*0.3)) + 'px';
+
+        let m = setInterval(() => {
+            if(!active) { e.remove(); clearInterval(m); return; }
+            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.3)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
-                hp--; upUI(); e.remove(); clearInterval(m); if(hp<=0) { alert("GAME OVER!"); location.reload(); }
+                lives--; updateUI(); e.remove(); clearInterval(m); if(lives <= 0) location.reload();
             }
-            if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnE(); }
+            if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
         }, 20);
-        setTimeout(spawnE, 1800 - (db.s*100));
+        setTimeout(spawnEnemy, 1800 - (state.stage * 100));
     }
 
-    function spawnB() {
-        isB = true; let b = document.createElement('div');
-        b.className = 'boss'; b.hp = 80 + (db.s*40); b.max = b.hp;
-        b.innerHTML = '<div class="hp-bar"><div class="hp-f"></div></div>👾';
-        b.style.top = '80px'; document.body.appendChild(b);
-        let m = setInterval(()=> {
-            if(!game) { b.remove(); clearInterval(m); return; }
-            bx += (2 + db.s*0.2) * bd; if(bx > 80 || bx < 20) bd *= -1;
+    function spawnBoss() {
+        isBoss = true;
+        const b = document.createElement('div'); b.className = 'boss';
+        b.hp = 100 + (state.stage * 60); b.max = b.hp;
+        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div>
+                       <svg viewBox="0 0 200 100"><path d="M0 0 L200 0 L180 100 L100 70 L20 100 Z" fill="#bc13fe" stroke="#fff" stroke-width="4"/></svg>`;
+        b.style.top = '80px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
+        document.body.appendChild(b);
+
+        setInterval(() => {
+            if(!active) return;
+            bx += 2.5 * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.95) {
-                let bomb = document.createElement('div'); bomb.style.cssText = "position:absolute; width:25px; height:25px; background:#fff; border-radius:50%; box-shadow:0 0 20px var(--r); z-index:140;";
-                bomb.style.left = bx + 'vw'; bomb.style.top = '160px';
-                document.body.appendChild(bomb);
-                let bm = setInterval(()=> {
-                    let bt = parseFloat(bomb.style.top); bomb.style.top = (bt+7)+'px';
-                    let pR = document.getElementById('player').getBoundingClientRect();
-                    let bR = bomb.getBoundingClientRect();
-                    if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
-                        hp--; upUI(); bomb.remove(); clearInterval(bm); if(hp<=0) location.reload();
-                    }
-                    if(bt > window.innerHeight) { bomb.remove(); clearInterval(bm); }
-                }, 20);
+            if(Math.random() > 0.95) bossShoot(bx);
+        }, 50);
+    }
+
+    function bossShoot(x) {
+        const bomb = document.createElement('div'); bomb.className = 'bomb';
+        bomb.style.left = x + 'vw'; bomb.style.top = '150px';
+        document.body.appendChild(bomb);
+        let m = setInterval(() => {
+            let t = parseFloat(bomb.style.top); bomb.style.top = (t + 8) + 'px';
+            let pR = document.getElementById('player').getBoundingClientRect();
+            let bR = bomb.getBoundingClientRect();
+            if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
+                lives--; updateUI(); bomb.remove(); clearInterval(m); if(lives <= 0) location.reload();
             }
-        }, 40);
+            if(t > window.innerHeight) { bomb.remove(); clearInterval(m); }
+        }, 20);
     }
 
     let mL = false, mR = false;
-    document.getElementById('lB').ontouchstart = (e) => { e.preventDefault(); mL = true; };
-    document.getElementById('lB').ontouchend = () => mL = false;
-    document.getElementById('rB').ontouchstart = (e) => { e.preventDefault(); mR = true; };
-    document.getElementById('rB').ontouchend = () => mR = false;
-    setInterval(()=> {
-        if(!game) return;
-        if(mL && px > 8) px -= 4.5; if(mR && px < 92) px += 4.5;
+    document.getElementById('lBtn').ontouchstart = (e) => { e.preventDefault(); mL = true; };
+    document.getElementById('lBtn').ontouchend = () => mL = false;
+    document.getElementById('rBtn').ontouchstart = (e) => { e.preventDefault(); mR = true; };
+    document.getElementById('rBtn').ontouchend = () => mR = false;
+    
+    setInterval(() => {
+        if(!active) return;
+        if(mL && px > 10) px -= 5; if(mR && px < 90) px += 5;
         document.getElementById('player').style.left = px + '%';
     }, 20);
-    sync();
+
+    save();
 </script>
 </body>
 </html>
