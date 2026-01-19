@@ -3,99 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Asser Galaxy: Balanced War</title>
+    <title>ASSER GALAXY - ULTIMATE V18</title>
     <style>
-        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; color: white; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; color: white; touch-action: none; user-select: none; }
+        #game-container { position: relative; width: 100vw; height: 100vh; background: radial-gradient(circle, #000428, #000000); overflow: hidden; }
         
-        #starfield { position: fixed; width: 100%; height: 100%; z-index: -1; background: #000; }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; }
-
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
-        h1 { color: var(--blue); text-shadow: 0 0 20px var(--blue); font-size: 30px; margin-bottom: 10px; }
+        /* القوائم */
+        .menu { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn { padding: 15px 30px; font-size: 20px; background: #00f2ff; color: #000; border: none; border-radius: 10px; cursor: pointer; margin: 10px; font-weight: bold; }
         
-        .garage { display: flex; gap: 10px; margin: 15px 0; }
-        .ship-box { border: 2px solid #444; padding: 10px; border-radius: 10px; text-align: center; width: 70px; cursor: pointer; }
-        .ship-box.active { border-color: var(--blue); background: rgba(0, 242, 255, 0.1); }
+        /* السفينة واللعب */
+        #player { position: absolute; bottom: 150px; font-size: 60px; left: 50%; transform: translateX(-50%); z-index: 500; transition: left 0.1s ease-out; }
+        .bullet { position: absolute; width: 6px; height: 20px; background: #ffea00; border-radius: 3px; box-shadow: 0 0 10px #ffea00; z-index: 400; }
+        .enemy { position: absolute; font-size: 45px; z-index: 300; }
+        .boss { position: absolute; font-size: 100px; z-index: 350; text-align: center; left: 50%; transform: translateX(-50%); }
+
+        /* أزرار التحكم الضخمة */
+        #controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around; z-index: 2000; pointer-events: none; }
+        .ctrl-btn { width: 100px; height: 100px; background: rgba(255,255,255,0.2); border: 3px solid #00f2ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; pointer-events: auto; }
         
-        .btn { padding: 12px 25px; font-size: 18px; background: none; color: white; border: 2px solid var(--blue); border-radius: 8px; cursor: pointer; margin: 5px; }
-
-        #game-ui { position: absolute; top: 10px; width: 100%; padding: 0 20px; box-sizing: border-box; display: none; justify-content: space-between; z-index: 500; font-weight: bold; }
-        #player { position: absolute; bottom: 120px; font-size: 50px; z-index: 200; left: 50%; transform: translateX(-50%); }
-        .bullet { position: absolute; width: 5px; height: 15px; background: yellow; border-radius: 2px; z-index: 150; box-shadow: 0 0 10px yellow; }
-        .enemy { position: absolute; font-size: 40px; z-index: 100; }
-        .boss { position: absolute; font-size: 100px; z-index: 110; text-align: center; left: 50%; transform: translateX(-50%); }
-
-        #controls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: center; gap: 30px; z-index: 2000; }
-        .ctrl-btn { width: 75px; height: 75px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; touch-action: none; }
+        /* الواجهة */
+        #ui { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; font-size: 20px; font-weight: bold; color: #00f2ff; z-index: 1000; }
     </style>
 </head>
 <body>
 
-<div id="starfield"></div>
-
-<div id="lobby" class="screen">
-    <h1>ASSER GALAXY V17</h1>
-    <p style="color:var(--gold)">💰 COINS: <span id="coins-val">0</span></p>
-    <div class="garage">
-        <div class="ship-box active" onclick="setShip(0)">🛸<br>Lv <span id="lv0">1</span></div>
-        <div class="ship-box" onclick="setShip(1)">🚀<br>Lv <span id="lv1">1</span></div>
-        <div class="ship-box" onclick="setShip(2)">✈️<br>Lv <span id="lv2">1</span></div>
+<div id="game-container">
+    <div id="ui" style="display:none;">
+        <div>❤️ <span id="lives">3</span></div>
+        <div>💰 <span id="coins">0</span></div>
+        <div>STAGE <span id="stage">1</span></div>
     </div>
-    <button class="btn" onclick="upgrade()">UPGRADE (500💰)</button>
-    <button class="btn" style="background:var(--blue); color:black;" onclick="start()">START MISSION <span id="stage-num">1</span></button>
-</div>
 
-<div id="game-ui">
-    <div>❤️ <span id="lives">3</span> | 💰 <span id="g-coins">0</span></div>
-    <div style="color:var(--blue)">STAGE <span id="cur-stage">1</span></div>
-</div>
-<div id="player">🛸</div>
+    <div id="start-menu" class="menu">
+        <h1 style="color:#00f2ff; text-shadow: 0 0 20px #00f2ff;">ASSER GALAXY V18</h1>
+        <div id="ship-preview" style="font-size: 80px; margin: 20px;">🛸</div>
+        <button class="btn" onclick="startGame()">START GAME</button>
+        <p>Control with Left/Right Buttons Below</p>
+    </div>
 
-<div id="controls">
-    <div class="ctrl-btn" id="left-btn">⬅️</div>
-    <div class="ctrl-btn" id="right-btn">➡️</div>
+    <div id="player" style="display:none;">🛸</div>
+
+    <div id="controls" style="display:none;">
+        <div class="ctrl-btn" id="leftBtn">⬅️</div>
+        <div class="ctrl-btn" id="rightBtn">➡️</div>
+    </div>
 </div>
 
 <script>
-    let data = {
-        coins: parseInt(localStorage.getItem('as_c_v17')) || 0,
-        stage: parseInt(localStorage.getItem('as_s_v17')) || 1,
-        shipIdx: 0,
-        lvls: JSON.parse(localStorage.getItem('as_l_v17')) || [1, 1, 1]
-    };
-    const ships = ['🛸', '🚀', '✈️'];
-    let gameOn = false, lives = 3, enemiesKilled = 0, isBoss = false, playerX = 50;
+    let coins = 0, stage = 1, lives = 3, gameActive = false, playerX = 50;
+    const player = document.getElementById('player');
 
-    function updateLobby() {
-        document.getElementById('coins-val').innerText = data.coins;
-        document.getElementById('g-coins').innerText = data.coins;
-        document.getElementById('stage-num').innerText = data.stage;
-        document.getElementById('cur-stage').innerText = data.stage;
-        for(let i=0; i<3; i++) {
-            document.getElementById('lv'+i).innerText = data.lvls[i];
-            document.querySelectorAll('.ship-box')[i].className = (i==data.shipIdx) ? 'ship-box active' : 'ship-box';
-        }
-        document.getElementById('player').innerText = ships[data.shipIdx];
-        localStorage.setItem('as_c_v17', data.coins);
-        localStorage.setItem('as_s_v17', data.stage);
-        localStorage.setItem('as_l_v17', JSON.stringify(data.lvls));
-    }
-
-    function setShip(i) { data.shipIdx = i; updateLobby(); }
-    
-    function upgrade() {
-        let cost = data.lvls[data.shipIdx] * 500;
-        if(data.coins >= cost && data.lvls[data.shipIdx] < 5) {
-            data.coins -= cost; data.lvls[data.shipIdx]++; updateLobby();
-        } else { alert("Need more coins!"); }
-    }
-
-    function start() {
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'flex';
+    function startGame() {
+        document.getElementById('start-menu').style.display = 'none';
+        document.getElementById('ui').style.display = 'flex';
         document.getElementById('controls').style.display = 'flex';
-        document.getElementById('player').style.display = 'block';
-        gameOn = true; 
-        lives = 3 + data.lvls[data.shipIdx];
-        enemiesKilled = 0; isBoss = false; playerX = 5
+        player.style.display = 'block';
+        gameActive = true;
+        spawnEnemy();
+        autoShoot();
+    }
+
+    // التحكم بالأزرار
+    let moveLeft = false, moveRight = false;
+    document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft = true; });
+    document.getElementById('leftBtn').addEventListener('touchend', () => moveLeft = false);
+    document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); moveRight = true; });
+    document.getElementById('rightBtn').addEventListener('touchend', () => moveRight = false);
+
+    setInterval(() => {
+        if(!gameActive) return;
+        if(moveLeft && playerX > 10) playerX -= 4;
+        if(moveRight && playerX < 90) playerX += 4;
+        player.style.left = playerX + '%';
+    }, 20);
+
+    // الضرب الآلي
+    function autoShoot() {
+        if(!gameActive) return;
+        const b = document.createElement('div');
+        b.className = 'bullet';
+        const rect = player.getBoundingClientRect();
+        b.style.left = (rect.left + rect.width/2 - 3) + 'px';
+        b.style.bottom = (window.innerHeight - rect.top) + 'px';
+        document.getElementById('game-container').appendChild(b);
+
+        let moveB = setInterval(() => {
+            let bBottom = parseFloat(b.style.bottom);
+            b.style.bottom = (bBottom + 10) + 'px';
+            
+            document.querySelectorAll('.enemy').forEach(en => {
+                let eR = en.getBoundingClientRect();
+                let bR = b.getBoundingClientRect();
+                if(bR.left < eR.right && bR.right > eR.left && bR.top < eR.bottom && bR.bottom > eR.top) {
+                    en.remove(); b.remove(); clearInterval(moveB);
+                    coins += 10; document.getElementById('coins').innerText = coins;
+                }
+            });
+
+            if(bBottom > window.innerHeight) { b.remove(); clearInterval(moveB); }
+        }, 20);
+        setTimeout(autoShoot, 400);
+    }
+
+    function spawnEnemy() {
+        if(!gameActive) return;
+        const en = document.createElement('div');
+        en.className = 'enemy'; en.innerText = '👾';
+        en.style.left = Math.random() * 80 + 'vw';
+        en.style.top = '-50px';
+        document.getElementById('game-container').appendChild(en);
+
+        let speed = 3 + (stage * 0.5);
+        let moveEn = setInterval(() => {
+            if(!gameActive) { en.remove(); clearInterval(moveEn); return; }
+            let enTop = parseFloat(en.style.top);
+            en.style.top = (enTop + speed) + 'px';
+
+            // تصادم مع اللاعب
+            let pR = player.getBoundingClientRect();
+            let eR = en.getBoundingClientRect();
+            if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
+                lives--; document.getElementById('lives').innerText = lives;
+                en.remove(); clearInterval(moveEn);
+                if(lives <= 0) { alert("GAME OVER!"); location.reload(); }
+            }
+
+            if(enTop > window.innerHeight) { en.remove(); clearInterval(moveEn); spawnEnemy(); }
+        }, 20);
+        setTimeout(spawnEnemy, 2000);
+    }
+</script>
+</body>
+</html>
