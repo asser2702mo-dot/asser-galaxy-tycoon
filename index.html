@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asser Galaxy Tycoon V11</title>
+    <style>
+        :root { --neon-cyan: #0ff; --neon-gold: #ffd700; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; touch-action: none; color: white; }
+        
+        #stars-container { position: fixed; width: 100%; height: 100%; z-index: 0; background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%); }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: moveStar linear infinite; }
+        @keyframes moveStar { from { transform: translateY(-10vh); } to { transform: translateY(110vh); } }
+
+        /* اللوبي */
+        #lobby { position: absolute; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; background: rgba(0,0,0,0.8); }
+        h1 { font-size: 40px; color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan); text-align: center; }
+        
+        .stats-bar { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 20px; margin: 10px; color: var(--neon-gold); font-weight: bold; }
+        
+        .menu-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { padding: 15px 30px; font-size: 18px; background: none; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); cursor: pointer; border-radius: 5px; }
+        .btn:hover { background: var(--neon-cyan); color: black; }
+
+        /* المتجر والتطوير */
+        #shop { display: none; position: absolute; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; z-index: 210; background: #050505; }
+        .upgrade-card { background: #111; padding: 20px; border: 1px solid var(--neon-cyan); border-radius: 10px; text-align: center; width: 250px; }
+        .level-dots { display: flex; justify-content: center; gap: 5px; margin: 10px 0; }
+        .dot { width: 10px; height: 10px; background: #333; border-radius: 50%; }
+        .dot.active { background: var(--neon-cyan); box-shadow: 0 0 5px var(--neon-cyan); }
+
+        /* اللعبة */
+        #game-container { display: none; position: relative; width: 100vw; height: 100vh; z-index: 10; }
+        #player { position: absolute; bottom: 130px; font-size: 60px; z-index: 100; transform: translateX(-50%); transition: font-size 0.3s; }
+        .enemy { position: absolute; font-size: 45px; z-index: 50; }
+        #ui { position: absolute; top: 20px; left: 20px; z-index: 300; }
+    </style>
+</head>
+<body>
+
+    <div id="stars-container"></div>
+
+    <div id="lobby">
+        <h1>Asser Galaxy Tycoon</h1>
+        <div class="stats-bar">💰 Coins: <span id="lobby-coins">0</span></div>
+        <div class="stats-bar">🏆 High Score: <span id="lobby-high">0</span></div>
+        <div class="menu-btns">
+            <button class="btn" onclick="startGame()">START GAME</button>
+            <button class="btn" onclick="showShop()" style="border-color:var(--neon-gold); color:var(--neon-gold)">UPGRADE SHIP</button>
+        </div>
+    </div>
+
+    <div id="shop">
+        <h2>SHIP UPGRADES</h2>
+        <div class="upgrade-card">
+            <div id="ship-preview" style="font-size: 70px; margin-bottom: 10px;">🛸</div>
+            <p>Ship Level: <span id="ship-lv-text">1</span> / 5</p>
+            <div class="level-dots" id="level-dots">
+                <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+            <p style="color:var(--neon-gold)">Cost: <span id="upgrade-cost">500</span> Coins</p>
+            <button class="btn" onclick="buyUpgrade()">UPGRADE NOW</button>
+        </div>
+        <button class="btn" style="margin-top:20px; border-color:white; color:white;" onclick="hideShop()">BACK</button>
+    </div>
+
+    <div id="game-container">
+        <div id="ui">
+            <div style="color:var(--neon-gold)">Coins: <span id="game-coins">0</span></div>
+            <div>Score: <span id="score">0</span></div>
+            <div id="lives-display">❤️❤️❤️</div>
+        </div>
+        <div id="player">🛸</div>
+        <div id="dead-line" style="position:absolute; bottom:110px; width:100%; height:2px; background:red;"></div>
+    </div>
+
+<script>
+    // بيانات اللاعب (الحفظ)
+    let coins = parseInt(localStorage.getItem('asserCoins')) || 0;
+    let shipLevel = parseInt(localStorage.getItem('asserShipLevel')) || 1;
+    let highScore = localStorage.getItem('asserHighV11') || 0;
+
+    function updateLobbyUI() {
+        document.getElementById('lobby-coins').innerText = coins;
+        document.getElementById('lobby-high').innerText = highScore;
+        document.getElementById('ship-lv-text').innerText = shipLevel;
+        updateDots();
+    }
+
+    function updateDots() {
+        const dots = document.getElementById('level-dots').children;
+        for(let i=0; i<5; i++) {
+            dots[i].className = i < shipLevel ? 'dot active' : 'dot';
+        }
+        document.getElementById('upgrade-cost').innerText = shipLevel * 500;
+        // تكبير حجم السفينة حسب اللفل
+        document.getElementById('player').style.fontSize = (50 + (shipLevel * 10)) + 'px';
+    }
+
+    function showShop() {
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById('shop').style.display = 'flex';
+        updateDots();
+    }
+
+    function hideShop() {
+        document.getElementById('shop').style.display = 'none';
+        document.getElementById('lobby').style.display = 'flex';
+        updateLobbyUI();
+    }
+
+    function buyUpgrade() {
+        let cost = shipLevel * 500;
+        if (coins >= cost && shipLevel < 5) {
+            coins -= cost;
+            shipLevel++;
+            localStorage.setItem('asserCoins', coins);
+            localStorage.setItem('asserShipLevel', shipLevel);
+            updateDots();
+            alert("Ship Upgraded to Level " + shipLevel + "! 🚀");
+        } else if (shipLevel >= 5) {
+            alert("Max Level Reached!");
+        } else {
+            alert("Not enough coins! You need " + cost);
+        }
+    }
+
+    // منطق اللعبة
+    let gameActive = false;
+    let score = 0;
+    let currentLives = 0;
+
+    function startGame() {
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        score = 0;
+        currentLives = 2 + shipLevel; // كل لفل بيديك قلب زيادة!
+        document.getElementById('lives-display').innerText = "❤️".repeat(currentLives);
+        gameActive = true;
+        spawnEnemies();
+    }
+
+    // حركة النجوم
+    const starsContainer = document.getElementById('stars-container');
+    for (let i = 0; i < 40; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.width = '2px'; star.style.height = '2px';
+        star.style.left = Math.random() * 100 + 'vw';
+        star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        star.style.top = Math.random() * 100 + 'vh';
+        starsContainer.appendChild(star);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        if(!gameActive) return;
+        document.getElementById('player').style.left = e.clientX + 'px';
+    });
+    window.addEventListener('touchmove', (e) => {
+        if(!gameActive) return;
+        document.getElementById('player').style.left = e.touches[0].clientX + 'px';
+    });
+
+    function spawnEnemies() {
+        if(!gameActive) return;
+        const enemy = document.createElement('div');
+        enemy.className = 'enemy';
+        enemy.innerText = '👾';
+        enemy.style.left = Math.random() * (window.innerWidth - 40) + 'px';
+        enemy.style.top = '-50px';
+        document.getElementById('game-container').appendChild(enemy);
+
+        let speed = 3 + (score / 300) + (shipLevel * 0.5);
+        let moveInt = setInterval(() => {
+            if(!gameActive) { clearInterval(moveInt); return; }
+            let top = parseFloat(enemy.style.top);
+            enemy.style.top = (top + speed) + 'px';
+
+            let pRect = document.getElementById('player').getBoundingClientRect();
+            let eRect = enemy.getBoundingClientRect();
+
+            if (eRect.top < pRect.bottom && eRect.bottom > pRect.top && eRect.left < pRect.right && eRect.right > pRect.left) {
+                clearInterval(moveInt);
+                enemy.remove();
+                score += 10;
+                coins += 10; // تجميع الفلوس
+                document.getElementById('score').innerText = score;
+                document.getElementById('game-coins').innerText = coins;
+            }
+
+            if (eRect.bottom >= 110 + (window.innerHeight - 110)) { // حدود الشاشة
+                 // هنا منطق الخسارة لو فاتك العدو
+            }
+        }, 20);
+        setTimeout(spawnEnemies, 1000);
+    }
+
+    updateLobbyUI();
+</script>
+</body>
+</html>
+
