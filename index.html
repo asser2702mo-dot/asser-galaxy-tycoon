@@ -3,53 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V30 - THE FACE OF EVIL</title>
+    <title>ASSER GALAXY V32 - FINAL FIX</title>
     <style>
-        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --purple: #bc13fe; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; touch-action: none; user-select: none; }
+        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --p: #bc13fe; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; }
         
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001233 0%, #000 100%); z-index: 1000; }
-        .garage { display: flex; gap: 15px; margin: 20px 0; }
-        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 85px; text-align: center; background: rgba(0,0,0,0.6); }
-        .ship-box.active { border-color: var(--blue); box-shadow: 0 0 20px var(--blue); transform: scale(1.1); }
-        .svg-icon { width: 50px; height: 50px; }
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001, #000); z-index: 1000; }
+        .garage { display: flex; gap: 10px; margin: 20px 0; }
+        .ship-box { border: 2px solid #444; padding: 8px; border-radius: 12px; width: 75px; text-align: center; background: rgba(255,255,255,0.05); }
+        .ship-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); transform: scale(1.05); }
+        .svg-icon { width: 45px; height: 45px; }
 
-        .btn { padding: 15px 35px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 18px; box-shadow: 0 5px 15px rgba(0,242,255,0.4); }
+        .btn { padding: 12px 30px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 16px; margin: 5px; }
 
-        #ui { position: absolute; top: 20px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 20px; }
-        #player { position: absolute; bottom: 130px; width: 70px; height: 70px; z-index: 200; filter: drop-shadow(0 0 10px var(--blue)); }
+        #ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-weight: bold; }
+        #player { position: absolute; bottom: 120px; width: 65px; height: 65px; z-index: 200; filter: drop-shadow(0 0 8px var(--blue)); }
         
-        .bullet { position: absolute; width: 6px; height: 30px; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; }
+        .bullet { position: absolute; width: 5px; height: 25px; background: #fff; box-shadow: 0 0 8px var(--blue); border-radius: 4px; }
+        .enemy { position: absolute; width: 75px; height: 75px; z-index: 100; }
         
-        /* الأعداء الجدد بملامح */
-        .enemy { position: absolute; width: 85px; height: 85px; z-index: 100; }
-        .e-face { position: relative; width: 100%; height: 100%; }
-        
-        .boss { position: absolute; width: 230px; height: 160px; z-index: 110; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .hp-bar { width: 90%; height: 12px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
-        .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.2s; }
-        .boss-icon { font-size: 80px; filter: drop-shadow(0 0 20px var(--purple)); }
+        .boss { position: absolute; width: 200px; height: 140px; z-index: 110; display: flex; flex-direction: column; align-items: center; }
+        .hp-bar { width: 90%; height: 10px; background: #333; border: 1px solid #fff; border-radius: 5px; overflow: hidden; }
+        .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.1s; }
 
-        #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 60px; z-index: 2000; }
-        .ctrl-btn { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 50px; z-index: 2000; }
+        .ctrl-btn { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; }
     </style>
 </head>
 <body>
 
 <div id="lobby" class="screen">
-    <h1 style="color: var(--blue); font-size: 38px;">ASSER GALAXY</h1>
-    <div style="color: var(--gold); margin-bottom: 20px;">💰 COINS: <span id="c-val">0</span> | STAGE: <span id="s-val">1</span></div>
-    
+    <h1 style="color: var(--blue); margin: 0; font-size: 32px;">ASSER GALAXY</h1>
+    <div style="color: var(--gold); margin: 10px 0;">💰 BANK: <span id="bank-val">0</span> | STAGE: <span id="stage-val">1</span></div>
     <div class="garage" id="garage"></div>
-
     <button class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
-    <button class="btn" style="background: var(--gold); margin-top: 15px;" onclick="start()">BATTLE START</button>
+    <button class="btn" style="background: var(--gold);" onclick="startGame()">START MISSION</button>
+</div>
+
+<div id="win-screen" class="screen" style="display:none;">
+    <h1 style="color: var(--gold);">STAGE CLEAR!</h1>
+    <p id="win-msg"></p>
+    <button class="btn" onclick="location.reload()">CONTINUE</button>
 </div>
 
 <div id="ui">
     <div id="lives-ui"></div>
-    <div style="color: var(--gold);">💰 <span id="g-c">0</span></div>
-    <div style="color: var(--blue);">STAGE <span id="g-s">1</span></div>
+    <div style="color: var(--gold);">💰 <span id="sess-coins">0</span></div>
+    <div style="color: var(--blue);">ST: <span id="sess-stage">1</span></div>
 </div>
 
 <div id="player" style="display:none;"></div>
@@ -66,103 +66,105 @@
     ];
 
     let state = {
-        coins: parseInt(localStorage.getItem('as_c')) || 0,
-        stage: parseInt(localStorage.getItem('as_s')) || 1,
-        shipId: 0,
-        lvls: JSON.parse(localStorage.getItem('as_l')) || [1, 1, 1]
+        coins: parseInt(localStorage.getItem('as_gold')) || 0,
+        stage: parseInt(localStorage.getItem('as_stage')) || 1,
+        shipId: parseInt(localStorage.getItem('as_ship')) || 0,
+        lvls: JSON.parse(localStorage.getItem('as_lvls')) || [1, 1, 1]
     };
 
-    let active = false, lives = 3, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
+    let active = false, lives = 5, sessCoins = 0, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
 
     function save() {
-        localStorage.setItem('as_c', state.coins);
-        localStorage.setItem('as_s', state.stage);
-        localStorage.setItem('as_l', JSON.stringify(state.lvls));
-        document.getElementById('c-val').innerText = state.coins;
-        document.getElementById('s-val').innerText = state.stage;
+        localStorage.setItem('as_gold', state.coins);
+        localStorage.setItem('as_stage', state.stage);
+        localStorage.setItem('as_ship', state.shipId);
+        localStorage.setItem('as_lvls', JSON.stringify(state.lvls));
+        document.getElementById('bank-val').innerText = state.coins;
+        document.getElementById('stage-val').innerText = state.stage;
         renderGarage();
     }
 
     function renderGarage() {
-        const g = document.getElementById('garage');
-        g.innerHTML = ships.map((s, i) => `
+        document.getElementById('garage').innerHTML = ships.map((s, i) => `
             <div class="ship-box ${state.shipId==i?'active':''}" onclick="state.shipId=${i};save();">
-                ${s}
-                <div>Lv ${state.lvls[i]}</div>
-            </div>
-        `).join('');
+                ${s}<div>Lv ${state.lvls[i]}</div>
+            </div>`).join('');
     }
 
     function upgrade() {
         if(state.coins >= 500) { state.coins -= 500; state.lvls[state.shipId]++; save(); }
+        else { alert("مش معاك فلوس كفاية!"); }
     }
 
-    function start() {
+    function startGame() {
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('ui').style.display = 'flex';
         document.getElementById('controls').style.display = 'flex';
         const p = document.getElementById('player');
         p.style.display = 'block'; p.innerHTML = ships[state.shipId];
-        active = true; lives = 4 + state.lvls[state.shipId];
-        kills = 0; isBoss = false; px = 50;
+        active = true; lives = 5 + state.lvls[state.shipId];
+        sessCoins = 0; kills = 0; isBoss = false; px = 50;
         updateUI(); spawnEnemy(); shoot();
     }
 
     function updateUI() {
-        document.getElementById('lives-ui').innerText = "❤️".repeat(Math.max(0, lives));
-        document.getElementById('g-c').innerText = state.coins;
-        document.getElementById('g-s').innerText = state.stage;
+        document.getElementById('lives-ui').innerText = "❤️" + lives;
+        document.getElementById('sess-coins').innerText = sessCoins;
+        document.getElementById('sess-stage').innerText = state.stage;
     }
 
     function shoot() {
         if(!active) return;
         const b = document.createElement('div'); b.className = 'bullet';
         const r = document.getElementById('player').getBoundingClientRect();
-        b.style.left = (r.left + r.width/2 - 3) + 'px';
+        b.style.left = (r.left + r.width/2 - 2.5) + 'px';
         b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
 
         let m = setInterval(() => {
-            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 20) + 'px';
-            let bR = b.getBoundingClientRect();
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 15) + 'px';
             document.querySelectorAll('.enemy, .boss').forEach(t => {
-                let tR = t.getBoundingClientRect();
+                let tR = t.getBoundingClientRect(); let bR = b.getBoundingClientRect();
                 if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
                     if(t.classList.contains('boss')) {
-                        t.hp -= (state.lvls[state.shipId] * 3); // ضربة أقوى 3 مرات
+                        t.hp -= (state.lvls[state.shipId] * 4);
                         t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
-                        if(t.hp <= 0) { t.remove(); state.coins += 1200; state.stage++; location.reload(); }
+                        if(t.hp <= 0) { 
+                            t.remove(); active = false;
+                            state.coins += (sessCoins + 500); 
+                            state.stage++; 
+                            save();
+                            document.getElementById('win-screen').style.display='flex';
+                            document.getElementById('win-msg').innerText = "كسبت " + (sessCoins + 500) + "💰 ومرحلة جديدة!";
+                        }
                     } else {
-                        t.remove(); state.coins += 25; kills++; updateUI();
-                        if(kills === 10) spawnBoss();
+                        t.remove(); sessCoins += 50; kills++; updateUI();
+                        if(kills === 6) spawnBoss(); 
                     }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, Math.max(80, 400 - (state.lvls[state.shipId]*60)));
+        setTimeout(shoot, Math.max(100, 450 - (state.lvls[state.shipId]*50)));
     }
 
     function spawnEnemy() {
         if(!active || isBoss) return;
         const e = document.createElement('div'); e.className = 'enemy';
-        // عدو بـ عينين وبوق
-        e.innerHTML = `
-            <div class="e-face">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/>
-                    <circle cx="35" cy="40" r="8" fill="#fff"/> <circle cx="35" cy="40" r="3" fill="#000"/>
-                    <circle cx="65" cy="40" r="8" fill="#fff"/> <circle cx="65" cy="40" r="3" fill="#000"/>
-                    <path d="M30 70 Q50 90 70 70" fill="none" stroke="#fff" stroke-width="4"/>
-                </svg>
-            </div>`;
+        e.innerHTML = `<svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/>
+            <path d="M25 35 L45 45" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+            <path d="M75 35 L55 45" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="35" cy="50" r="6" fill="#000"/><circle cx="65" cy="50" r="6" fill="#000"/>
+            <path d="M35 80 Q50 60 65 80" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+        </svg>`;
         e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
 
         let m = setInterval(() => {
             if(!active) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.3)) + 'px';
+            let t = parseFloat(e.style.top); e.style.top = (t + 3.5 + (state.stage * 0.4)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
@@ -170,33 +172,29 @@
             }
             if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
         }, 20);
-        setTimeout(spawnEnemy, 1800 - (state.stage * 100));
+        setTimeout(spawnEnemy, Math.max(800, 2000 - (state.stage * 150)));
     }
 
     function spawnBoss() {
         isBoss = true;
         const b = document.createElement('div'); b.className = 'boss';
-        b.hp = 80 + (state.stage * 30); b.max = b.hp; // صحة أقل بكتير
-        b.innerHTML = `
-            <div class="hp-bar"><div class="hp-fill"></div></div>
-            <div class="boss-icon">💀</div>
-            <div style="font-size:12px; color:var(--purple); font-weight:bold;">DEMON BOSS</div>
-        `;
-        b.style.top = '80px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
+        b.hp = 60 + (state.stage * 30); b.max = b.hp;
+        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div><div style="font-size:60px;">💀</div>`;
+        b.style.top = '70px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
         document.body.appendChild(b);
 
-        setInterval(() => {
-            if(!active) return;
-            bx += 3 * bd; if(bx > 80 || bx < 20) bd *= -1;
+        let bMove = setInterval(() => {
+            if(!active) { clearInterval(bMove); return; }
+            bx += (2 + state.stage*0.3) * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.96) bossShoot(bx);
+            if(Math.random() > 0.95) bossShoot(bx);
         }, 50);
     }
 
     function bossShoot(x) {
         const bomb = document.createElement('div');
-        bomb.style.cssText = "position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; box-shadow:0 0 15px var(--red);";
-        bomb.style.left = x + 'vw'; bomb.style.top = '170px';
+        bomb.style.cssText = "position:absolute; width:20px; height:20px; background:yellow; border-radius:50%; border:2px solid #000; z-index:150;";
+        bomb.style.left = x + 'vw'; bomb.style.top = '160px';
         document.body.appendChild(bomb);
         let m = setInterval(() => {
             let t = parseFloat(bomb.style.top); bomb.style.top = (t + 8) + 'px';
@@ -217,7 +215,7 @@
     
     setInterval(() => {
         if(!active) return;
-        if(mL && px > 10) px -= 6; if(mR && px < 90) px += 6;
+        if(mL && px > 10) px -= 5.5; if(mR && px < 90) px += 5.5;
         document.getElementById('player').style.left = px + '%';
     }, 20);
 
