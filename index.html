@@ -3,37 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V32 - FINAL FIX</title>
+    <title>ASSER GALAXY V34 - POWER EVOLUTION</title>
     <style>
-        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --p: #bc13fe; }
+        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; }
         body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; }
         
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001, #000); z-index: 1000; }
         .garage { display: flex; gap: 10px; margin: 20px 0; }
-        .ship-box { border: 2px solid #444; padding: 8px; border-radius: 12px; width: 75px; text-align: center; background: rgba(255,255,255,0.05); }
+        .ship-box { border: 2px solid #444; padding: 8px; border-radius: 12px; width: 80px; text-align: center; background: rgba(255,255,255,0.05); }
         .ship-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); transform: scale(1.05); }
-        .svg-icon { width: 45px; height: 45px; }
-
+        
         .btn { padding: 12px 30px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 16px; margin: 5px; }
 
-        #ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-weight: bold; }
-        #player { position: absolute; bottom: 120px; width: 65px; height: 65px; z-index: 200; filter: drop-shadow(0 0 8px var(--blue)); }
+        #ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-weight: bold; font-size: 20px; }
         
-        .bullet { position: absolute; width: 5px; height: 25px; background: #fff; box-shadow: 0 0 8px var(--blue); border-radius: 4px; }
-        .enemy { position: absolute; width: 75px; height: 75px; z-index: 100; }
+        #player { position: absolute; bottom: 120px; z-index: 200; transition: all 0.2s linear; display: flex; align-items: center; justify-content: center; }
+        .aura { position: absolute; width: 130%; height: 130%; border: 2px solid var(--blue); border-radius: 50%; opacity: 0; filter: blur(5px); }
+
+        .bullet { position: absolute; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; transform: translateX(-50%); }
+        .enemy { position: absolute; width: 70px; height: 70px; z-index: 100; }
         
-        .boss { position: absolute; width: 200px; height: 140px; z-index: 110; display: flex; flex-direction: column; align-items: center; }
-        .hp-bar { width: 90%; height: 10px; background: #333; border: 1px solid #fff; border-radius: 5px; overflow: hidden; }
+        .boss { position: absolute; width: 220px; height: 180px; z-index: 110; display: flex; flex-direction: column; align-items: center; }
+        .hp-bar { width: 100%; height: 10px; background: #333; border: 1px solid #fff; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
         .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.1s; }
+        .boss-art { font-size: 80px; filter: drop-shadow(0 0 15px var(--red)); }
 
         #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 50px; z-index: 2000; }
-        .ctrl-btn { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+        .ctrl-btn { width: 85px; height: 85px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; }
     </style>
 </head>
 <body>
 
 <div id="lobby" class="screen">
-    <h1 style="color: var(--blue); margin: 0; font-size: 32px;">ASSER GALAXY</h1>
+    <h1 style="color: var(--blue); margin: 0; font-size: 32px;">ASSER GALAXY V34</h1>
     <div style="color: var(--gold); margin: 10px 0;">💰 BANK: <span id="bank-val">0</span> | STAGE: <span id="stage-val">1</span></div>
     <div class="garage" id="garage"></div>
     <button class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
@@ -41,9 +43,9 @@
 </div>
 
 <div id="win-screen" class="screen" style="display:none;">
-    <h1 style="color: var(--gold);">STAGE CLEAR!</h1>
-    <p id="win-msg"></p>
-    <button class="btn" onclick="location.reload()">CONTINUE</button>
+    <h1 style="color: var(--gold);">MISSION COMPLETE!</h1>
+    <p id="win-msg" style="font-size: 20px;"></p>
+    <button class="btn" onclick="location.reload()">NEXT STAGE</button>
 </div>
 
 <div id="ui">
@@ -59,52 +61,63 @@
 </div>
 
 <script>
-    const ships = [
-        `<svg class="svg-icon" viewBox="0 0 100 100"><polygon points="50,5 95,95 50,75 5,95" fill="#00f2ff"/><rect x="45" y="40" width="10" height="30" fill="#fff"/></svg>`,
-        `<svg class="svg-icon" viewBox="0 0 100 100"><path d="M50 5 L100 80 L80 100 L50 80 L20 100 L0 80 Z" fill="#ffd700"/><circle cx="50" cy="50" r="10" fill="#fff"/></svg>`,
-        `<svg class="svg-icon" viewBox="0 0 100 100"><path d="M10 20 L50 0 L90 20 L90 80 L50 100 L10 80 Z" fill="#fff"/><path d="M30 40 L70 40 L50 70 Z" fill="#00f2ff"/></svg>`
+    const shipBases = [
+        `<svg viewBox="0 0 100 100"><polygon points="50,5 95,95 50,75 5,95" fill="#00f2ff"/><rect x="45" y="40" width="10" height="30" fill="#fff"/></svg>`,
+        `<svg viewBox="0 0 100 100"><path d="M50 5 L100 80 L80 100 L50 80 L20 100 L0 80 Z" fill="#ffd700"/><circle cx="50" cy="50" r="10" fill="#fff"/></svg>`,
+        `<svg viewBox="0 0 100 100"><path d="M10 20 L50 0 L90 20 L90 80 L50 100 L10 80 Z" fill="#fff"/><circle cx="50" cy="50" r="15" fill="#00f2ff"/></svg>`
     ];
 
+    const bossIcons = ["👹", "👾", "🤖", "🐉", "🛸", "👿", "👺", "🌑"];
+
     let state = {
-        coins: parseInt(localStorage.getItem('as_gold')) || 0,
-        stage: parseInt(localStorage.getItem('as_stage')) || 1,
-        shipId: parseInt(localStorage.getItem('as_ship')) || 0,
-        lvls: JSON.parse(localStorage.getItem('as_lvls')) || [1, 1, 1]
+        coins: parseInt(localStorage.getItem('as_g34')) || 0,
+        stage: parseInt(localStorage.getItem('as_s34')) || 1,
+        shipId: parseInt(localStorage.getItem('as_sh34')) || 0,
+        lvls: JSON.parse(localStorage.getItem('as_l34')) || [1, 1, 1]
     };
 
     let active = false, lives = 5, sessCoins = 0, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
 
     function save() {
-        localStorage.setItem('as_gold', state.coins);
-        localStorage.setItem('as_stage', state.stage);
-        localStorage.setItem('as_ship', state.shipId);
-        localStorage.setItem('as_lvls', JSON.stringify(state.lvls));
+        localStorage.setItem('as_g34', state.coins);
+        localStorage.setItem('as_s34', state.stage);
+        localStorage.setItem('as_sh34', state.shipId);
+        localStorage.setItem('as_l34', JSON.stringify(state.lvls));
         document.getElementById('bank-val').innerText = state.coins;
         document.getElementById('stage-val').innerText = state.stage;
         renderGarage();
     }
 
     function renderGarage() {
-        document.getElementById('garage').innerHTML = ships.map((s, i) => `
+        document.getElementById('garage').innerHTML = shipBases.map((s, i) => `
             <div class="ship-box ${state.shipId==i?'active':''}" onclick="state.shipId=${i};save();">
-                ${s}<div>Lv ${state.lvls[i]}</div>
+                <div style="width:40px;height:40px;margin:auto">${s}</div>
+                <div>Lv ${state.lvls[i]}</div>
             </div>`).join('');
     }
 
     function upgrade() {
         if(state.coins >= 500) { state.coins -= 500; state.lvls[state.shipId]++; save(); }
-        else { alert("مش معاك فلوس كفاية!"); }
     }
 
     function startGame() {
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('ui').style.display = 'flex';
         document.getElementById('controls').style.display = 'flex';
-        const p = document.getElementById('player');
-        p.style.display = 'block'; p.innerHTML = ships[state.shipId];
+        updatePlayerLook();
         active = true; lives = 5 + state.lvls[state.shipId];
         sessCoins = 0; kills = 0; isBoss = false; px = 50;
         updateUI(); spawnEnemy(); shoot();
+    }
+
+    function updatePlayerLook() {
+        const p = document.getElementById('player');
+        const level = state.lvls[state.shipId];
+        const size = 60 + (level * 5); 
+        p.style.display = 'flex';
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.innerHTML = (level > 3 ? `<div class="aura" style="opacity:${level*0.1}; border-width:${level}px;"></div>` : '') + shipBases[state.shipId];
     }
 
     function updateUI() {
@@ -115,38 +128,47 @@
 
     function shoot() {
         if(!active) return;
+        const level = state.lvls[state.shipId];
         const b = document.createElement('div'); b.className = 'bullet';
+        
+        // تعديل حجم الطلقة بناءً على الليفل (زيادة بسيطة)
+        const bWidth = 5 + (level * 1.5);
+        const bHeight = 25 + (level * 3);
+        b.style.width = bWidth + 'px';
+        b.style.height = bHeight + 'px';
+
         const r = document.getElementById('player').getBoundingClientRect();
-        b.style.left = (r.left + r.width/2 - 2.5) + 'px';
+        b.style.left = (r.left + r.width/2) + 'px';
         b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
 
         let m = setInterval(() => {
-            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 15) + 'px';
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 18) + 'px';
             document.querySelectorAll('.enemy, .boss').forEach(t => {
                 let tR = t.getBoundingClientRect(); let bR = b.getBoundingClientRect();
                 if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
                     if(t.classList.contains('boss')) {
-                        t.hp -= (state.lvls[state.shipId] * 4);
+                        t.hp -= (level * 6);
                         t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
                         if(t.hp <= 0) { 
                             t.remove(); active = false;
-                            state.coins += (sessCoins + 500); 
-                            state.stage++; 
-                            save();
+                            state.coins += (sessCoins + 600); state.stage++; save();
                             document.getElementById('win-screen').style.display='flex';
-                            document.getElementById('win-msg').innerText = "كسبت " + (sessCoins + 500) + "💰 ومرحلة جديدة!";
+                            document.getElementById('win-msg').innerText = "Earned: " + (sessCoins + 600) + " 💰";
                         }
                     } else {
                         t.remove(); sessCoins += 50; kills++; updateUI();
-                        if(kills === 6) spawnBoss(); 
+                        if(kills === 7) spawnBoss(); 
                     }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, Math.max(100, 450 - (state.lvls[state.shipId]*50)));
+
+        // سرعة الضرب تزيد (الوقت بين الطلقات يقل)
+        let fireRate = Math.max(70, 450 - (level * 65));
+        setTimeout(shoot, fireRate);
     }
 
     function spawnEnemy() {
@@ -154,17 +176,16 @@
         const e = document.createElement('div'); e.className = 'enemy';
         e.innerHTML = `<svg viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/>
-            <path d="M25 35 L45 45" stroke="#000" stroke-width="5" stroke-linecap="round"/>
-            <path d="M75 35 L55 45" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+            <path d="M20 30 L45 40 M80 30 L55 40" stroke="#000" stroke-width="6"/>
             <circle cx="35" cy="50" r="6" fill="#000"/><circle cx="65" cy="50" r="6" fill="#000"/>
-            <path d="M35 80 Q50 60 65 80" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+            <path d="M30 80 Q50 60 70 80" fill="none" stroke="#000" stroke-width="5"/>
         </svg>`;
         e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
 
         let m = setInterval(() => {
             if(!active) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 3.5 + (state.stage * 0.4)) + 'px';
+            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.4)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
@@ -172,32 +193,33 @@
             }
             if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
         }, 20);
-        setTimeout(spawnEnemy, Math.max(800, 2000 - (state.stage * 150)));
+        setTimeout(spawnEnemy, Math.max(600, 2000 - (state.stage * 150)));
     }
 
     function spawnBoss() {
         isBoss = true;
         const b = document.createElement('div'); b.className = 'boss';
-        b.hp = 60 + (state.stage * 30); b.max = b.hp;
-        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div><div style="font-size:60px;">💀</div>`;
+        b.hp = 100 + (state.stage * 40); b.max = b.hp;
+        let icon = bossIcons[state.stage % bossIcons.length];
+        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div><div class="boss-art">${icon}</div>`;
         b.style.top = '70px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
         document.body.appendChild(b);
 
         let bMove = setInterval(() => {
             if(!active) { clearInterval(bMove); return; }
-            bx += (2 + state.stage*0.3) * bd; if(bx > 80 || bx < 20) bd *= -1;
+            bx += (2.5 + state.stage*0.4) * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.95) bossShoot(bx);
+            if(Math.random() > 0.94) bossShoot(bx);
         }, 50);
     }
 
     function bossShoot(x) {
         const bomb = document.createElement('div');
-        bomb.style.cssText = "position:absolute; width:20px; height:20px; background:yellow; border-radius:50%; border:2px solid #000; z-index:150;";
-        bomb.style.left = x + 'vw'; bomb.style.top = '160px';
+        bomb.style.cssText = "position:absolute; width:22px; height:22px; background:white; border-radius:50%; border:3px solid var(--red); z-index:150;";
+        bomb.style.left = x + 'vw'; bomb.style.top = '180px';
         document.body.appendChild(bomb);
         let m = setInterval(() => {
-            let t = parseFloat(bomb.style.top); bomb.style.top = (t + 8) + 'px';
+            let t = parseFloat(bomb.style.top); bomb.style.top = (t + 9) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let bR = bomb.getBoundingClientRect();
             if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
@@ -215,7 +237,7 @@
     
     setInterval(() => {
         if(!active) return;
-        if(mL && px > 10) px -= 5.5; if(mR && px < 90) px += 5.5;
+        if(mL && px > 10) px -= 6; if(mR && px < 90) px += 6;
         document.getElementById('player').style.left = px + '%';
     }, 20);
 
@@ -223,3 +245,4 @@
 </script>
 </body>
 </html>
+
