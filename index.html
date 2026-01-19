@@ -3,229 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V25 - PRO EDITION</title>
+    <title>ASSER GALAXY V26 - ELITE</title>
     <style>
-        :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --purple: #bc13fe; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; user-select: none; touch-action: none; }
-        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-
-        /* القوائم */
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001 0%, #000 100%); z-index: 1000; text-align: center; }
-        .garage { display: flex; gap: 12px; margin: 20px 0; }
-        .ship-box { border: 2px solid #222; padding: 15px; border-radius: 12px; width: 80px; background: #050505; transition: 0.3s; }
-        .ship-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); transform: scale(1.1); }
+        :root { --b: #00f2ff; --g: #ffd700; --r: #ff0044; --p: #bc13fe; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: #fff; user-select: none; touch-action: none; }
         
-        /* تصميم السفن */
-        .s-pre { width: 40px; height: 40px; margin: 0 auto 10px; position: relative; }
-        .shape0 { background: var(--blue); clip-path: polygon(50% 0%, 0% 100%, 50% 80%, 100% 100%); }
-        .shape1 { background: var(--gold); clip-path: polygon(50% 0%, 100% 100%, 50% 70%, 0% 100%); }
-        .shape2 { background: #fff; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        /* تحسين الأداء بالخلفية الثابتة */
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; background: radial-gradient(circle, #001, #000); }
 
-        .btn { padding: 15px 30px; background: linear-gradient(to bottom, var(--blue), #0088ff); color: #000; border: none; border-radius: 50px; font-weight: bold; margin: 10px; cursor: pointer; text-transform: uppercase; }
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
+        .garage { display: flex; gap: 15px; margin: 20px 0; }
+        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 85px; text-align: center; background: #111; }
+        .ship-box.active { border-color: var(--b); box-shadow: 0 0 15px var(--b); }
 
-        /* اللعبة */
-        #game-ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 20px; text-shadow: 2px 2px #000; }
-        #player { position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 200; width: 55px; height: 55px; }
-        .thruster { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: orange; filter: blur(5px); border-radius: 50%; animation: flame 0.1s infinite alternate; }
-        @keyframes flame { from { height: 15px; opacity: 0.8; } to { height: 25px; opacity: 0.4; } }
+        /* --- تصميم السفن المركبة --- */
+        .ship-art { position: relative; width: 50px; height: 50px; margin: 0 auto 10px; }
+        .part { position: absolute; background: var(--b); }
+        /* السفينة 1: المقاتلة */
+        .s0 .p1 { width: 100%; height: 100%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.5; }
+        .s0 .p2 { width: 40%; height: 80%; left: 30%; top: 10%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); background: #fff; }
+        /* السفينة 2: الصقر */
+        .s1 .p1 { width: 100%; height: 60%; top: 20%; clip-path: polygon(0% 0%, 100% 0%, 50% 100%); background: var(--g); }
+        .s1 .p2 { width: 20%; height: 100%; left: 40%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); background: #fff; }
+        /* السفينة 3: المتقدمة */
+        .s2 .p1 { width: 100%; height: 100%; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: #fff; opacity: 0.4; }
+        .s2 .p2 { width: 60%; height: 60%; left: 20%; top: 20%; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: var(--b); }
 
-        /* الأعداء والبوس */
-        .enemy { position: absolute; width: 75px; height: 75px; z-index: 100; }
-        .e-core { width: 100%; height: 100%; background: var(--red); clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); border: 2px solid #fff; }
-        
-        .bullet { position: absolute; width: 4px; height: 30px; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 2px; }
-        .bomb { position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px var(--red); }
+        .btn { padding: 12px 25px; background: var(--b); border: none; border-radius: 50px; font-weight: bold; margin: 10px; }
 
-        .boss { position: absolute; width: 220px; height: 140px; z-index: 110; background: var(--purple); clip-path: polygon(10% 0%, 90% 0%, 100% 30%, 50% 100%, 0% 30%); border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 50px; }
-        .hp-cont { position: absolute; top: -20px; width: 100%; height: 12px; background: #222; border: 2px solid #fff; }
-        .hp-fill { height: 100%; background: linear-gradient(to right, #f00, #f66); width: 100%; transition: 0.1s; }
+        /* واجهة اللعب */
+        #ui { position: absolute; top: 10px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 20px; }
+        #player { position: absolute; bottom: 120px; width: 60px; height: 60px; z-index: 200; transition: transform 0.1s; }
 
-        /* التحكم */
-        #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 50px; z-index: 2000; }
-        .ctrl { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; backdrop-filter: blur(5px); }
+        /* الأعداء المركبين */
+        .enemy { position: absolute; width: 80px; height: 80px; }
+        .e-art { position: relative; width: 100%; height: 100%; }
+        .e-p1 { position: absolute; width: 100%; height: 100%; background: var(--r); clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%); }
+        .e-p2 { position: absolute; width: 40%; height: 40%; left: 30%; top: 30%; background: #000; clip-path: circle(50%); }
+
+        .bullet { position: absolute; width: 6px; height: 25px; background: #fff; box-shadow: 0 0 10px var(--b); border-radius: 5px; }
+        .bomb { position: absolute; width: 20px; height: 20px; background: #ff0; border-radius: 50%; box-shadow: 0 0 15px var(--r); }
+
+        /* البوس */
+        .boss { position: absolute; width: 200px; height: 120px; background: var(--p); clip-path: polygon(0 0, 100% 0, 85% 100%, 50% 70%, 15% 100%); border-bottom: 5px solid #fff; }
+        .hp-bar { position: absolute; top: -20px; width: 100%; height: 10px; background: #333; border: 1px solid #fff; }
+        .hp-f { height: 100%; background: var(--r); width: 100%; transition: width 0.1s; }
+
+        #ctrls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: center; gap: 40px; }
+        .c-btn { width: 85px; height: 85px; background: rgba(255,255,255,0.1); border: 2px solid var(--b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; }
     </style>
 </head>
 <body>
 
-<canvas id="starfield"></canvas>
+<canvas id="stars"></canvas>
 
 <div id="lobby" class="screen">
-    <h1 style="color:var(--blue); font-size: 40px; margin:0;">ASSER GALAXY</h1>
-    <p style="color:var(--gold)">COINS: <span id="c-val">0</span> | STAGE: <span id="s-val">1</span>/20</p>
+    <h1 style="color:var(--b)">ASSER GALAXY V26</h1>
+    <p>💰 <span id="coins">0</span> | Stage: <span id="stage">1</span></p>
     <div class="garage">
-        <div class="ship-box active" onclick="sel(0)"><div class="s-pre shape0"></div>Lv<span id="lv0">1</span></div>
-        <div class="ship-box" onclick="sel(1)"><div class="s-pre shape1"></div>Lv<span id="lv1">1</span></div>
-        <div class="ship-box" onclick="sel(2)"><div class="s-pre shape2"></div>Lv<span id="lv2">1</span></div>
+        <div class="ship-box active" onclick="sel(0)"><div class="ship-art s0"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv0">1</span></div>
+        <div class="ship-box" onclick="sel(1)"><div class="ship-art s1"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv1">1</span></div>
+        <div class="ship-box" onclick="sel(2)"><div class="ship-art s2"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv2">1</span></div>
     </div>
-    <button class="btn" onclick="upgrade()">Upgrade Ship (500💰)</button>
-    <button class="btn" style="background:var(--gold)" onclick="gameStart()">Launch Mission</button>
+    <button class="btn" onclick="upgr()">UPGRADE (500💰)</button>
+    <button class="btn" style="background:var(--g)" onclick="go()">START</button>
 </div>
 
-<div id="game-ui">
-    <div id="ui-hp" style="color:var(--red)"></div>
-    <div style="color:var(--gold)">💰 <span id="ui-c">0</span></div>
-    <div style="color:var(--blue)">ST <span id="ui-s">1</span></div>
+<div id="ui">
+    <div id="lives" style="color:var(--r)"></div>
+    <div style="color:var(--g)">💰 <span id="g-coins">0</span></div>
+    <div>ST: <span id="g-st">1</span></div>
 </div>
 
-<div id="player" style="display:none;"><div class="thruster"></div></div>
+<div id="player" style="display:none;"></div>
 
-<div id="controls">
-    <div class="ctrl" id="btnL">⬅️</div>
-    <div class="ctrl" id="btnR">➡️</div>
+<div id="ctrls">
+    <div class="c-btn" id="lB">⬅️</div>
+    <div class="c-btn" id="rB">➡️</div>
 </div>
 
 <script>
-    let state = {
-        c: parseInt(localStorage.getItem('as25_c')) || 0,
-        s: parseInt(localStorage.getItem('as25_s')) || 1,
-        ship: 0,
-        lv: JSON.parse(localStorage.getItem('as25_l')) || [1,1,1]
-    };
+    let db = { c: parseInt(localStorage.getItem('as26_c'))||0, s: parseInt(localStorage.getItem('as26_s'))||1, id: 0, l: JSON.parse(localStorage.getItem('as26_l'))||[1,1,1] };
+    let game = false, hp = 3, kill = 0, isB = false, px = 50, bx = 50, bd = 1;
 
-    let active = false, lives = 3, enemies = 0, isBoss = false, px = 50, bx = 50, bDir = 1;
-
-    function refresh() {
-        localStorage.setItem('as25_c', state.c);
-        localStorage.setItem('as25_s', state.s);
-        localStorage.setItem('as25_l', JSON.stringify(state.lv));
-        document.getElementById('c-val').innerText = state.c;
-        document.getElementById('s-val').innerText = state.s;
-        for(let i=0; i<3; i++) document.getElementById('lv'+i).innerText = state.lv[i];
+    function sync() {
+        localStorage.setItem('as26_c', db.c); localStorage.setItem('as26_s', db.s); localStorage.setItem('as26_l', JSON.stringify(db.l));
+        document.getElementById('coins').innerText = db.c; document.getElementById('stage').innerText = db.s;
+        for(let i=0;i<3;i++) document.getElementById('lv'+i).innerText = db.l[i];
     }
 
-    function sel(i) { state.ship = i; document.querySelectorAll('.ship-box').forEach((b,idx)=>b.className=idx==i?'ship-box active':'ship-box'); refresh(); }
-    
-    function upgrade() {
-        if(state.c >= 500 && state.lv[state.ship] < 5) { state.c -= 500; state.lv[state.ship]++; refresh(); }
-    }
+    function sel(i) { db.id = i; document.querySelectorAll('.ship-box').forEach((b,x)=>b.className=x==i?'ship-box active':'ship-box'); sync(); }
+    function upgr() { if(db.c>=500) { db.c-=500; db.l[db.id]++; sync(); } }
 
-    function gameStart() {
+    function go() {
         document.getElementById('lobby').style.display='none';
-        document.getElementById('game-ui').style.display='flex';
-        document.getElementById('controls').style.display='flex';
+        document.getElementById('ui').style.display='flex';
+        document.getElementById('ctrls').style.display='flex';
         let p = document.getElementById('player');
         p.style.display='block';
-        p.className = 'shape' + state.ship;
-        active = true; lives = 2 + state.lv[state.ship];
-        enemies = 0; isBoss = false; px = 50;
-        updateStats();
-        spawnEnemy();
-        shoot();
+        p.innerHTML = document.querySelectorAll('.ship-art')[db.id].innerHTML;
+        game = true; hp = 3 + db.l[db.id]; kill = 0; isB = false; px = 50;
+        upUI(); spawnE(); shoot();
     }
 
-    function updateStats() {
-        document.getElementById('ui-hp').innerText = "❤".repeat(lives);
-        document.getElementById('ui-c').innerText = state.c;
-        document.getElementById('ui-s').innerText = state.s;
+    function upUI() {
+        document.getElementById('lives').innerText = "❤️".repeat(hp);
+        document.getElementById('g-coins').innerText = db.c;
+        document.getElementById('g-st').innerText = db.s;
     }
 
     function shoot() {
-        if(!active) return;
-        let b = document.createElement('div');
-        b.className = 'bullet';
-        let pR = document.getElementById('player').getBoundingClientRect();
-        b.style.left = (pR.left + pR.width/2 - 2) + 'px';
-        b.style.bottom = (window.innerHeight - pR.top) + 'px';
+        if(!game) return;
+        let b = document.createElement('div'); b.className = 'bullet';
+        let r = document.getElementById('player').getBoundingClientRect();
+        b.style.left = (r.left + r.width/2 - 3) + 'px'; b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
-
-        let m = setInterval(() => {
-            let bot = parseFloat(b.style.bottom);
-            b.style.bottom = (bot + 18) + 'px';
+        let m = setInterval(()=> {
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 15) + 'px';
+            let bR = b.getBoundingClientRect();
             document.querySelectorAll('.enemy, .boss').forEach(en => {
-                let eR = en.getBoundingClientRect(); let bR = b.getBoundingClientRect();
+                let eR = en.getBoundingClientRect();
                 if(bR.left < eR.right && bR.right > eR.left && bR.top < eR.bottom && bR.bottom > eR.top) {
                     if(en.classList.contains('boss')) {
-                        en.hp -= state.lv[state.ship]; en.querySelector('.hp-fill').style.width = (en.hp/en.max*100)+'%';
-                        en.style.filter = 'brightness(3)'; setTimeout(()=>en.style.filter='none', 50);
-                        if(en.hp<=0) { en.remove(); state.c+=1000; state.s++; location.reload(); }
-                    } else {
-                        en.remove(); state.c+=25; enemies++; updateStats();
-                        if(enemies >= 10) spawnBoss();
-                    }
+                        en.hp -= db.l[db.id]; en.querySelector('.hp-f').style.width = (en.hp/en.max*100)+'%';
+                        if(en.hp<=0) { en.remove(); db.c+=1000; db.s++; location.reload(); }
+                    } else { en.remove(); db.c+=20; kill++; upUI(); if(kill==10) spawnB(); }
                     b.remove(); clearInterval(m);
                 }
             });
-            if(bot > window.innerHeight) { b.remove(); clearInterval(m); }
+            if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, 450 - (state.lv[state.ship]*60));
+        setTimeout(shoot, 400 - (db.l[db.id]*50));
     }
 
-    function spawnEnemy() {
-        if(!active || isBoss) return;
-        let e = document.createElement('div');
-        e.className = 'enemy'; e.innerHTML = '<div class="e-core"></div>';
+    function spawnE() {
+        if(!game || isB) return;
+        let e = document.createElement('div'); e.className = 'enemy';
+        e.innerHTML = '<div class="e-art"><div class="e-p1"></div><div class="e-p2"></div></div>';
         e.style.left = Math.random()*80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
         let m = setInterval(()=> {
-            if(!active) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top);
-            e.style.top = (t + 4.5 + (state.s*0.3)) + 'px';
+            if(!game) { e.remove(); clearInterval(m); return; }
+            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (db.s*0.2)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
-                lives--; updateStats(); e.remove(); clearInterval(m); if(lives<=0) location.reload();
+                hp--; upUI(); e.remove(); clearInterval(m); if(hp<=0) location.reload();
             }
-            if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
+            if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnE(); }
         }, 20);
-        setTimeout(spawnEnemy, 2000 - (state.s*80));
+        setTimeout(spawnE, 2000 - (db.s*100));
     }
 
-    function spawnBoss() {
-        isBoss = true;
-        let b = document.createElement('div');
-        b.className = 'boss'; b.hp = 100 + (state.s*60); b.max = b.hp;
-        b.innerHTML = '<div class="hp-cont"><div class="hp-fill"></div></div>💀';
-        b.style.top = '80px'; document.body.appendChild(b);
+    function spawnB() {
+        isB = true; let b = document.createElement('div');
+        b.className = 'boss'; b.hp = 100 + (db.s*50); b.max = b.hp;
+        b.innerHTML = '<div class="hp-bar"><div class="hp-f"></div></div>';
+        b.style.top = '70px'; document.body.appendChild(b);
         let m = setInterval(()=> {
-            if(!active) { b.remove(); clearInterval(m); return; }
-            bx += (2.5 + state.s*0.1) * bDir; if(bx > 80 || bx < 20) bDir *= -1;
+            if(!game) { b.remove(); clearInterval(m); return; }
+            bx += 2.5 * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.94) bossFire(bx);
-        }, 40);
-    }
-
-    function bossFire(x) {
-        [-15, 0, 15].forEach(angle => {
-            let bomb = document.createElement('div');
-            bomb.className = 'bomb';
-            bomb.style.left = x + 'vw'; bomb.style.top = '160px';
-            document.body.appendChild(bomb);
-            let speedX = angle/5;
-            let m = setInterval(()=> {
-                let t = parseFloat(bomb.style.top);
-                let l = parseFloat(bomb.style.left);
-                bomb.style.top = (t + 7) + 'px';
-                bomb.style.left = (l + speedX) + 'px';
-                let pR = document.getElementById('player').getBoundingClientRect();
-                let bR = bomb.getBoundingClientRect();
-                if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
-                    lives--; updateStats(); bomb.remove(); clearInterval(m); if(lives<=0) location.reload();
-                }
-                if(t > window.innerHeight) { bomb.remove(); clearInterval(m); }
-            }, 20);
-        });
-    }
-
-    let mL = false, mR = false;
-    document.getElementById('btnL').ontouchstart = (e) => { e.preventDefault(); mL = true; };
-    document.getElementById('btnL').ontouchend = () => mL = false;
-    document.getElementById('btnR').ontouchstart = (e) => { e.preventDefault(); mR = true; };
-    document.getElementById('btnR').ontouchend = () => mR = false;
-    setInterval(()=> {
-        if(!active) return;
-        if(mL && px > 10) px -= 4.5;
-        if(mR && px < 90) px += 4.5;
-        document.getElementById('player').style.left = px + '%';
-    }, 20);
-
-    const cv = document.getElementById('starfield'); const ct = cv.getContext('2d');
-    function drawBG() {
-        cv.width = window.innerWidth; cv.height = window.innerHeight;
-        ct.fillStyle = '#000'; ct.fillRect(0,0,cv.width,cv.height);
-        ct.fillStyle = '#fff'; for(let i=0;i<80;i++) ct.fillRect(Math.random()*cv.width, Math.random()*cv.height, 2, 2);
-        requestAnimationFrame(drawBG);
-    }
-    drawBG(); refresh();
-</script>
-</body>
-</html>
+            if(Math.random() > 0.96) {
+                let bomb = document.createElement('div'); bomb.className = 'bomb';
+                bomb.style.left = bx + 'vw'; bomb.style.top = '150px';
+                document.body.appendChild(bomb);
+                let bm = setInterval(()=> {
+                    let bt = parseFloat(bomb.style.top); bomb.style.top = (bt+7)+'px';
+                    let pR = document.getElementById('player').getBoundingClientRect();
+                    let bR = bomb.getBoundingClientRect();
+                    if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
+                        hp--; upUI(); bomb.remove(); clearInterval(bm); if(hp<=0) location.reload();
+                    }
+                    if(
