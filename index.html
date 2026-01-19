@@ -3,34 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY: THE WAR</title>
+    <title>Asser Galaxy: Balanced War</title>
     <style>
         :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; }
         body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; color: white; user-select: none; }
         
-        /* الخلفية */
         #starfield { position: fixed; width: 100%; height: 100%; z-index: -1; background: #000; }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; }
 
-        /* الشاشات */
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
-        h1 { color: var(--blue); text-shadow: 0 0 20px var(--blue); font-size: 30px; text-align: center; }
+        h1 { color: var(--blue); text-shadow: 0 0 20px var(--blue); font-size: 30px; margin-bottom: 10px; }
         
-        .garage { display: flex; gap: 10px; margin: 20px 0; }
-        .ship-box { border: 2px solid #444; padding: 10px; border-radius: 10px; text-align: center; width: 80px; cursor: pointer; }
+        .garage { display: flex; gap: 10px; margin: 15px 0; }
+        .ship-box { border: 2px solid #444; padding: 10px; border-radius: 10px; text-align: center; width: 70px; cursor: pointer; }
         .ship-box.active { border-color: var(--blue); background: rgba(0, 242, 255, 0.1); }
         
-        .btn { padding: 15px 30px; font-size: 18px; background: none; color: white; border: 2px solid var(--blue); border-radius: 8px; cursor: pointer; margin: 10px; }
-        .btn:active { transform: scale(0.9); }
+        .btn { padding: 12px 25px; font-size: 18px; background: none; color: white; border: 2px solid var(--blue); border-radius: 8px; cursor: pointer; margin: 5px; }
 
-        /* واجهة اللعبة */
         #game-ui { position: absolute; top: 10px; width: 100%; padding: 0 20px; box-sizing: border-box; display: none; justify-content: space-between; z-index: 500; font-weight: bold; }
-        #player { position: absolute; bottom: 80px; font-size: 50px; z-index: 200; transform: translateX(-50%); display: none; }
-        .bullet { position: absolute; width: 4px; height: 15px; background: yellow; border-radius: 2px; z-index: 150; }
+        #player { position: absolute; bottom: 120px; font-size: 50px; z-index: 200; left: 50%; transform: translateX(-50%); }
+        .bullet { position: absolute; width: 5px; height: 15px; background: yellow; border-radius: 2px; z-index: 150; box-shadow: 0 0 10px yellow; }
         .enemy { position: absolute; font-size: 40px; z-index: 100; }
-        .boss { position: absolute; font-size: 100px; z-index: 110; text-align: center; }
-        .hp-bar { width: 100px; height: 10px; background: #333; border: 1px solid white; margin-bottom: 5px; }
-        .hp-fill { height: 100%; background: red; width: 100%; }
+        .boss { position: absolute; font-size: 100px; z-index: 110; text-align: center; left: 50%; transform: translateX(-50%); }
+
+        #controls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: center; gap: 30px; z-index: 2000; }
+        .ctrl-btn { width: 75px; height: 75px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; touch-action: none; }
     </style>
 </head>
 <body>
@@ -38,16 +35,14 @@
 <div id="starfield"></div>
 
 <div id="lobby" class="screen">
-    <h1>ASSER GALAXY V15</h1>
+    <h1>ASSER GALAXY V17</h1>
     <p style="color:var(--gold)">💰 COINS: <span id="coins-val">0</span></p>
-    
     <div class="garage">
-        <div class="ship-box active" onclick="setShip(0)">🛸<br>Lvl <span id="lv0">1</span></div>
-        <div class="ship-box" onclick="setShip(1)">🚀<br>Lvl <span id="lv1">1</span></div>
-        <div class="ship-box" onclick="setShip(2)">✈️<br>Lvl <span id="lv2">1</span></div>
+        <div class="ship-box active" onclick="setShip(0)">🛸<br>Lv <span id="lv0">1</span></div>
+        <div class="ship-box" onclick="setShip(1)">🚀<br>Lv <span id="lv1">1</span></div>
+        <div class="ship-box" onclick="setShip(2)">✈️<br>Lv <span id="lv2">1</span></div>
     </div>
-    
-    <button class="btn" onclick="upgrade()">UPGRADE SHIP (500💰)</button>
+    <button class="btn" onclick="upgrade()">UPGRADE (500💰)</button>
     <button class="btn" style="background:var(--blue); color:black;" onclick="start()">START MISSION <span id="stage-num">1</span></button>
 </div>
 
@@ -57,18 +52,21 @@
 </div>
 <div id="player">🛸</div>
 
+<div id="controls">
+    <div class="ctrl-btn" id="left-btn">⬅️</div>
+    <div class="ctrl-btn" id="right-btn">➡️</div>
+</div>
+
 <script>
-    // 1. البيانات الأساسية
     let data = {
-        coins: parseInt(localStorage.getItem('a_c')) || 0,
-        stage: parseInt(localStorage.getItem('a_s')) || 1,
+        coins: parseInt(localStorage.getItem('as_c_v17')) || 0,
+        stage: parseInt(localStorage.getItem('as_s_v17')) || 1,
         shipIdx: 0,
-        lvls: JSON.parse(localStorage.getItem('a_l')) || [1, 1, 1]
+        lvls: JSON.parse(localStorage.getItem('as_l_v17')) || [1, 1, 1]
     };
     const ships = ['🛸', '🚀', '✈️'];
-    let gameOn = false, lives = 3, enemiesKilled = 0, isBoss = false;
+    let gameOn = false, lives = 3, enemiesKilled = 0, isBoss = false, playerX = 50;
 
-    // 2. تحديث الشاشة
     function updateLobby() {
         document.getElementById('coins-val').innerText = data.coins;
         document.getElementById('g-coins').innerText = data.coins;
@@ -79,109 +77,25 @@
             document.querySelectorAll('.ship-box')[i].className = (i==data.shipIdx) ? 'ship-box active' : 'ship-box';
         }
         document.getElementById('player').innerText = ships[data.shipIdx];
-        localStorage.setItem('a_c', data.coins);
-        localStorage.setItem('a_s', data.stage);
-        localStorage.setItem('a_l', JSON.stringify(data.lvls));
+        localStorage.setItem('as_c_v17', data.coins);
+        localStorage.setItem('as_s_v17', data.stage);
+        localStorage.setItem('as_l_v17', JSON.stringify(data.lvls));
     }
 
-    // 3. التحكم بالجراج
     function setShip(i) { data.shipIdx = i; updateLobby(); }
+    
     function upgrade() {
         let cost = data.lvls[data.shipIdx] * 500;
         if(data.coins >= cost && data.lvls[data.shipIdx] < 5) {
             data.coins -= cost; data.lvls[data.shipIdx]++; updateLobby();
-        } else { alert("Coins not enough or Max Level!"); }
+        } else { alert("Need more coins!"); }
     }
 
-    // 4. ميكانيكا اللعبة
     function start() {
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('game-ui').style.display = 'flex';
+        document.getElementById('controls').style.display = 'flex';
         document.getElementById('player').style.display = 'block';
-        gameOn = true; lives = 2 + data.lvls[data.shipIdx];
-        enemiesKilled = 0; isBoss = false;
-        document.getElementById('lives').innerText = lives;
-        spawnEnemy(); shoot();
-    }
-
-    window.addEventListener('touchmove', (e) => {
-        if(gameOn) document.getElementById('player').style.left = e.touches[0].clientX + 'px';
-    });
-
-    function shoot() {
-        if(!gameOn) return;
-        let p = document.getElementById('player').getBoundingClientRect();
-        let b = document.createElement('div');
-        b.className = 'bullet';
-        b.style.left = (p.left + p.width/2 - 2) + 'px';
-        b.style.bottom = (window.innerHeight - p.top) + 'px';
-        document.body.appendChild(b);
-
-        let m = setInterval(() => {
-            let bot = parseFloat(b.style.bottom);
-            b.style.bottom = (bot + 12) + 'px';
-            
-            let bRect = b.getBoundingClientRect();
-            document.querySelectorAll('.enemy, .boss').forEach(en => {
-                let eRect = en.getBoundingClientRect();
-                if(bRect.left < eRect.right && bRect.right > eRect.left && bRect.top < eRect.bottom && bRect.bottom > eRect.top) {
-                    if(en.classList.contains('boss')) {
-                        en.hp--; 
-                        en.querySelector('.hp-fill').style.width = (en.hp/en.max*100)+'%';
-                        if(en.hp<=0) { en.remove(); data.coins+=500; data.stage++; win(); }
-                    } else {
-                        en.remove(); data.coins+=10; enemiesKilled++;
-                        if(enemiesKilled == 10) spawnBoss();
-                    }
-                    b.remove(); clearInterval(m);
-                }
-            });
-            if(bot > window.innerHeight) { b.remove(); clearInterval(m); }
-        }, 20);
-        setTimeout(shoot, 500 - (data.lvls[data.shipIdx]*60));
-    }
-
-    function spawnEnemy() {
-        if(!gameOn || isBoss) return;
-        let en = document.createElement('div');
-        en.className = 'enemy'; en.innerText = '👾';
-        en.style.left = Math.random()*80 + 'vw'; en.style.top = '-50px';
-        document.body.appendChild(en);
-
-        let m = setInterval(() => {
-            if(!gameOn) { en.remove(); clearInterval(m); return; }
-            let t = parseFloat(en.style.top);
-            en.style.top = (t + 4) + 'px';
-            if(t > window.innerHeight) { 
-                lives--; document.getElementById('lives').innerText = lives;
-                en.remove(); clearInterval(m);
-                if(lives<=0) die(); else spawnEnemy();
-            }
-        }, 20);
-        setTimeout(spawnEnemy, 1500 - (data.stage*30));
-    }
-
-    function spawnBoss() {
-        isBoss = true;
-        let b = document.createElement('div');
-        b.className = 'boss'; b.hp = 15 + (data.stage*5); b.max = b.hp;
-        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div>👺`;
-        b.style.left = '30%'; b.style.top = '60px';
-        document.body.appendChild(b);
-    }
-
-    function die() { gameOn = false; alert("MISSION FAILED!"); location.reload(); }
-    function win() { gameOn = false; alert("STAGE CLEAR!"); location.reload(); }
-
-    // خلفية النجوم
-    for(let i=0; i<40; i++) {
-        let s = document.createElement('div');
-        s.className = 'star'; s.style.width = '2px'; s.style.height = '2px';
-        s.style.left = Math.random()*100+'vw'; s.style.top = Math.random()*100+'vh';
-        document.getElementById('starfield').appendChild(s);
-    }
-
-    updateLobby();
-</script>
-</body>
-</html>
+        gameOn = true; 
+        lives = 3 + data.lvls[data.shipIdx];
+        enemiesKilled = 0; isBoss = false; playerX = 5
