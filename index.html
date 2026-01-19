@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V34 - POWER EVOLUTION</title>
+    <title>ASSER GALAXY V35 - RISING CHALLENGE</title>
     <style>
         :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; }
         body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; }
@@ -23,8 +23,8 @@
         .bullet { position: absolute; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; transform: translateX(-50%); }
         .enemy { position: absolute; width: 70px; height: 70px; z-index: 100; }
         
-        .boss { position: absolute; width: 220px; height: 180px; z-index: 110; display: flex; flex-direction: column; align-items: center; }
-        .hp-bar { width: 100%; height: 10px; background: #333; border: 1px solid #fff; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+        .boss { position: absolute; z-index: 110; display: flex; flex-direction: column; align-items: center; transition: left 0.05s linear; }
+        .hp-bar { width: 100%; height: 12px; background: #333; border: 1px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
         .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.1s; }
         .boss-art { font-size: 80px; filter: drop-shadow(0 0 15px var(--red)); }
 
@@ -35,7 +35,7 @@
 <body>
 
 <div id="lobby" class="screen">
-    <h1 style="color: var(--blue); margin: 0; font-size: 32px;">ASSER GALAXY V34</h1>
+    <h1 style="color: var(--blue); margin: 0; font-size: 32px;">ASSER GALAXY V35</h1>
     <div style="color: var(--gold); margin: 10px 0;">💰 BANK: <span id="bank-val">0</span> | STAGE: <span id="stage-val">1</span></div>
     <div class="garage" id="garage"></div>
     <button class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
@@ -70,19 +70,19 @@
     const bossIcons = ["👹", "👾", "🤖", "🐉", "🛸", "👿", "👺", "🌑"];
 
     let state = {
-        coins: parseInt(localStorage.getItem('as_g34')) || 0,
-        stage: parseInt(localStorage.getItem('as_s34')) || 1,
-        shipId: parseInt(localStorage.getItem('as_sh34')) || 0,
-        lvls: JSON.parse(localStorage.getItem('as_l34')) || [1, 1, 1]
+        coins: parseInt(localStorage.getItem('as_g35')) || 0,
+        stage: parseInt(localStorage.getItem('as_s35')) || 1,
+        shipId: parseInt(localStorage.getItem('as_sh35')) || 0,
+        lvls: JSON.parse(localStorage.getItem('as_l35')) || [1, 1, 1]
     };
 
     let active = false, lives = 5, sessCoins = 0, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
 
     function save() {
-        localStorage.setItem('as_g34', state.coins);
-        localStorage.setItem('as_s34', state.stage);
-        localStorage.setItem('as_sh34', state.shipId);
-        localStorage.setItem('as_l34', JSON.stringify(state.lvls));
+        localStorage.setItem('as_g35', state.coins);
+        localStorage.setItem('as_s35', state.stage);
+        localStorage.setItem('as_sh35', state.shipId);
+        localStorage.setItem('as_l35', JSON.stringify(state.lvls));
         document.getElementById('bank-val').innerText = state.coins;
         document.getElementById('stage-val').innerText = state.stage;
         renderGarage();
@@ -115,8 +115,7 @@
         const level = state.lvls[state.shipId];
         const size = 60 + (level * 5); 
         p.style.display = 'flex';
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
+        p.style.width = size + 'px'; p.style.height = size + 'px';
         p.innerHTML = (level > 3 ? `<div class="aura" style="opacity:${level*0.1}; border-width:${level}px;"></div>` : '') + shipBases[state.shipId];
     }
 
@@ -130,62 +129,48 @@
         if(!active) return;
         const level = state.lvls[state.shipId];
         const b = document.createElement('div'); b.className = 'bullet';
-        
-        // تعديل حجم الطلقة بناءً على الليفل (زيادة بسيطة)
-        const bWidth = 5 + (level * 1.5);
-        const bHeight = 25 + (level * 3);
-        b.style.width = bWidth + 'px';
-        b.style.height = bHeight + 'px';
-
+        b.style.width = (5 + level * 1.5) + 'px';
+        b.style.height = (25 + level * 3) + 'px';
         const r = document.getElementById('player').getBoundingClientRect();
         b.style.left = (r.left + r.width/2) + 'px';
         b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
 
         let m = setInterval(() => {
-            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 18) + 'px';
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 20) + 'px';
             document.querySelectorAll('.enemy, .boss').forEach(t => {
                 let tR = t.getBoundingClientRect(); let bR = b.getBoundingClientRect();
                 if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
                     if(t.classList.contains('boss')) {
-                        t.hp -= (level * 6);
+                        t.hp -= (level * 5);
                         t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
                         if(t.hp <= 0) { 
                             t.remove(); active = false;
-                            state.coins += (sessCoins + 600); state.stage++; save();
+                            state.coins += (sessCoins + 700); state.stage++; save();
                             document.getElementById('win-screen').style.display='flex';
-                            document.getElementById('win-msg').innerText = "Earned: " + (sessCoins + 600) + " 💰";
+                            document.getElementById('win-msg').innerText = "Stage Bonus: 700 💰";
                         }
                     } else {
                         t.remove(); sessCoins += 50; kills++; updateUI();
-                        if(kills === 7) spawnBoss(); 
+                        if(kills === 8) spawnBoss(); 
                     }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-
-        // سرعة الضرب تزيد (الوقت بين الطلقات يقل)
-        let fireRate = Math.max(70, 450 - (level * 65));
-        setTimeout(shoot, fireRate);
+        setTimeout(shoot, Math.max(60, 450 - (level * 65)));
     }
 
     function spawnEnemy() {
         if(!active || isBoss) return;
         const e = document.createElement('div'); e.className = 'enemy';
-        e.innerHTML = `<svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/>
-            <path d="M20 30 L45 40 M80 30 L55 40" stroke="#000" stroke-width="6"/>
-            <circle cx="35" cy="50" r="6" fill="#000"/><circle cx="65" cy="50" r="6" fill="#000"/>
-            <path d="M30 80 Q50 60 70 80" fill="none" stroke="#000" stroke-width="5"/>
-        </svg>`;
+        e.innerHTML = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/><path d="M20 30 L45 40 M80 30 L55 40" stroke="#000" stroke-width="6"/><circle cx="35" cy="50" r="6" fill="#000"/><circle cx="65" cy="50" r="6" fill="#000"/><path d="M30 80 Q50 60 70 80" fill="none" stroke="#000" stroke-width="5"/></svg>`;
         e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
-
         let m = setInterval(() => {
             if(!active) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.4)) + 'px';
+            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.5)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
@@ -193,33 +178,45 @@
             }
             if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
         }, 20);
-        setTimeout(spawnEnemy, Math.max(600, 2000 - (state.stage * 150)));
+        setTimeout(spawnEnemy, Math.max(500, 2000 - (state.stage * 150)));
     }
 
     function spawnBoss() {
         isBoss = true;
         const b = document.createElement('div'); b.className = 'boss';
-        b.hp = 100 + (state.stage * 40); b.max = b.hp;
+        
+        // --- تطور البوس حسب المرحلة ---
+        b.hp = 120 + (state.stage * 60); // زيادة الصحة بشكل ملحوظ
+        b.max = b.hp;
+        let bossSize = 200 + (state.stage * 10); // زيادة حجم البوس
+        b.style.width = bossSize + 'px';
+        
         let icon = bossIcons[state.stage % bossIcons.length];
         b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div><div class="boss-art">${icon}</div>`;
         b.style.top = '70px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
         document.body.appendChild(b);
 
+        let bossMoveSpeed = 2.5 + (state.stage * 0.6); // زيادة سرعة حركة البوس
         let bMove = setInterval(() => {
             if(!active) { clearInterval(bMove); return; }
-            bx += (2.5 + state.stage*0.4) * bd; if(bx > 80 || bx < 20) bd *= -1;
+            bx += bossMoveSpeed * bd; 
+            if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.94) bossShoot(bx);
+            
+            // احتمالية ضرب نار تزيد مع المراحل
+            let shootChance = 0.93 - (state.stage * 0.01); 
+            if(Math.random() > Math.max(0.85, shootChance)) bossShoot(bx);
         }, 50);
     }
 
     function bossShoot(x) {
         const bomb = document.createElement('div');
-        bomb.style.cssText = "position:absolute; width:22px; height:22px; background:white; border-radius:50%; border:3px solid var(--red); z-index:150;";
+        bomb.style.cssText = `position:absolute; width:25px; height:25px; background:white; border-radius:50%; border:3px solid var(--red); box-shadow: 0 0 15px var(--red); z-index:150;`;
         bomb.style.left = x + 'vw'; bomb.style.top = '180px';
         document.body.appendChild(bomb);
         let m = setInterval(() => {
-            let t = parseFloat(bomb.style.top); bomb.style.top = (t + 9) + 'px';
+            let t = parseFloat(bomb.style.top); 
+            bomb.style.top = (t + 9 + (state.stage * 0.5)) + 'px'; // الطلقة نفسها بتبقى أسرع
             let pR = document.getElementById('player').getBoundingClientRect();
             let bR = bomb.getBoundingClientRect();
             if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
@@ -237,7 +234,7 @@
     
     setInterval(() => {
         if(!active) return;
-        if(mL && px > 10) px -= 6; if(mR && px < 90) px += 6;
+        if(mL && px > 8) px -= 6.5; if(mR && px < 92) px += 6.5;
         document.getElementById('player').style.left = px + '%';
     }, 20);
 
@@ -245,4 +242,3 @@
 </script>
 </body>
 </html>
-
