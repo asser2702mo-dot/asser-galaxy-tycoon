@@ -3,113 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V26 - ELITE</title>
+    <title>ASSER GALAXY - THE LAST WAR</title>
     <style>
         :root { --b: #00f2ff; --g: #ffd700; --r: #ff0044; --p: #bc13fe; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: #fff; user-select: none; touch-action: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: #fff; touch-action: none; }
         
-        /* تحسين الأداء بالخلفية الثابتة */
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; background: radial-gradient(circle, #001, #000); }
+        /* القوائم */
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001, #000); z-index: 1000; }
+        .garage { display: flex; gap: 10px; margin: 20px 0; }
+        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 80px; text-align: center; background: #050505; transition: 0.3s; }
+        .ship-box.active { border-color: var(--b); box-shadow: 0 0 20px var(--b); transform: scale(1.1); }
 
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
-        .garage { display: flex; gap: 15px; margin: 20px 0; }
-        .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 85px; text-align: center; background: #111; }
-        .ship-box.active { border-color: var(--b); box-shadow: 0 0 15px var(--b); }
+        /* --- تصميم السفن الهندسية المركبة --- */
+        .art { position: relative; width: 50px; height: 50px; margin: 0 auto 5px; }
+        .layer { position: absolute; width: 100%; height: 100%; }
+        /* سفينة 1: المقاتلة الزرقاء */
+        .s0 .l1 { background: var(--b); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.4; }
+        .s0 .l2 { background: #fff; clip-path: polygon(50% 20%, 30% 100%, 70% 100%); }
+        /* سفينة 2: الصقر الذهبي */
+        .s1 .l1 { background: var(--g); clip-path: polygon(0% 30%, 50% 0%, 100% 30%, 50% 100%); opacity: 0.6; }
+        .s1 .l2 { background: #fff; clip-path: polygon(40% 0%, 60% 0%, 60% 100%, 40% 100%); }
+        /* سفينة 3: المدمرة البيضاء */
+        .s2 .l1 { background: #fff; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); opacity: 0.5; }
+        .s2 .l2 { background: var(--b); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
-        /* --- تصميم السفن المركبة --- */
-        .ship-art { position: relative; width: 50px; height: 50px; margin: 0 auto 10px; }
-        .part { position: absolute; background: var(--b); }
-        /* السفينة 1: المقاتلة */
-        .s0 .p1 { width: 100%; height: 100%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.5; }
-        .s0 .p2 { width: 40%; height: 80%; left: 30%; top: 10%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); background: #fff; }
-        /* السفينة 2: الصقر */
-        .s1 .p1 { width: 100%; height: 60%; top: 20%; clip-path: polygon(0% 0%, 100% 0%, 50% 100%); background: var(--g); }
-        .s1 .p2 { width: 20%; height: 100%; left: 40%; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); background: #fff; }
-        /* السفينة 3: المتقدمة */
-        .s2 .p1 { width: 100%; height: 100%; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: #fff; opacity: 0.4; }
-        .s2 .p2 { width: 60%; height: 60%; left: 20%; top: 20%; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: var(--b); }
+        .btn { padding: 15px 30px; background: var(--b); border: none; border-radius: 50px; font-weight: bold; color: #000; margin: 10px; box-shadow: 0 5px 15px rgba(0,242,255,0.4); }
 
-        .btn { padding: 12px 25px; background: var(--b); border: none; border-radius: 50px; font-weight: bold; margin: 10px; }
+        /* اللعب */
+        #ui { position: absolute; top: 10px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 22px; text-shadow: 2px 2px #000; }
+        #player { position: absolute; bottom: 130px; width: 60px; height: 60px; z-index: 200; filter: drop-shadow(0 0 10px var(--b)); }
+        
+        .bullet { position: absolute; width: 6px; height: 25px; background: #fff; box-shadow: 0 0 15px var(--b); border-radius: 5px; z-index: 150; }
+        .enemy { position: absolute; width: 70px; height: 70px; z-index: 100; filter: drop-shadow(0 0 10px var(--r)); }
+        .e-shape { width: 100%; height: 100%; background: var(--r); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 20%); border: 2px solid #fff; }
 
-        /* واجهة اللعب */
-        #ui { position: absolute; top: 10px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-size: 20px; }
-        #player { position: absolute; bottom: 120px; width: 60px; height: 60px; z-index: 200; transition: transform 0.1s; }
+        .boss { position: absolute; width: 220px; height: 130px; z-index: 110; background: var(--p); clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 50% 70%, 10% 100%); border: 3px solid #fff; transition: background 0.1s; }
+        .hp-bar { position: absolute; top: -20px; width: 100%; height: 12px; background: #222; border: 2px solid #fff; border-radius: 6px; overflow: hidden; }
+        .hp-f { height: 100%; background: var(--r); width: 100%; transition: width 0.2s; }
 
-        /* الأعداء المركبين */
-        .enemy { position: absolute; width: 80px; height: 80px; }
-        .e-art { position: relative; width: 100%; height: 100%; }
-        .e-p1 { position: absolute; width: 100%; height: 100%; background: var(--r); clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%); }
-        .e-p2 { position: absolute; width: 40%; height: 40%; left: 30%; top: 30%; background: #000; clip-path: circle(50%); }
-
-        .bullet { position: absolute; width: 6px; height: 25px; background: #fff; box-shadow: 0 0 10px var(--b); border-radius: 5px; }
-        .bomb { position: absolute; width: 20px; height: 20px; background: #ff0; border-radius: 50%; box-shadow: 0 0 15px var(--r); }
-
-        /* البوس */
-        .boss { position: absolute; width: 200px; height: 120px; background: var(--p); clip-path: polygon(0 0, 100% 0, 85% 100%, 50% 70%, 15% 100%); border-bottom: 5px solid #fff; }
-        .hp-bar { position: absolute; top: -20px; width: 100%; height: 10px; background: #333; border: 1px solid #fff; }
-        .hp-f { height: 100%; background: var(--r); width: 100%; transition: width 0.1s; }
-
-        #ctrls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: center; gap: 40px; }
-        .c-btn { width: 85px; height: 85px; background: rgba(255,255,255,0.1); border: 2px solid var(--b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+        #ctrls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 60px; z-index: 2000; }
+        .c-btn { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; backdrop-filter: blur(5px); }
     </style>
 </head>
 <body>
 
-<canvas id="stars"></canvas>
-
 <div id="lobby" class="screen">
-    <h1 style="color:var(--b)">ASSER GALAXY V26</h1>
-    <p>💰 <span id="coins">0</span> | Stage: <span id="stage">1</span></p>
+    <h1 style="font-size: 40px; color:var(--b); margin:0;">ASSER GALAXY</h1>
+    <p style="color:var(--g); font-size: 20px;">💰 COINS: <span id="coins">0</span> | STAGE: <span id="stage">1</span></p>
     <div class="garage">
-        <div class="ship-box active" onclick="sel(0)"><div class="ship-art s0"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv0">1</span></div>
-        <div class="ship-box" onclick="sel(1)"><div class="ship-art s1"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv1">1</span></div>
-        <div class="ship-box" onclick="sel(2)"><div class="ship-art s2"><div class="part p1"></div><div class="part p2"></div></div>Lv<span id="lv2">1</span></div>
+        <div class="ship-box active" onclick="sel(0)"><div class="art s0"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv0">1</span></div>
+        <div class="ship-box" onclick="sel(1)"><div class="art s1"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv1">1</span></div>
+        <div class="ship-box" onclick="sel(2)"><div class="art s2"><div class="layer l1"></div><div class="layer l2"></div></div>Lv<span id="lv2">1</span></div>
     </div>
-    <button class="btn" onclick="upgr()">UPGRADE (500💰)</button>
-    <button class="btn" style="background:var(--g)" onclick="go()">START</button>
+    <button class="btn" onclick="upgr()">UPGRADE (500 💰)</button>
+    <button class="btn" style="background:var(--g)" onclick="start()">BATTLE START</button>
 </div>
 
 <div id="ui">
     <div id="lives" style="color:var(--r)"></div>
-    <div style="color:var(--g)">💰 <span id="g-coins">0</span></div>
-    <div>ST: <span id="g-st">1</span></div>
+    <div style="color:var(--g)">💰 <span id="g-c">0</span></div>
+    <div>STAGE: <span id="g-s">1</span></div>
 </div>
 
 <div id="player" style="display:none;"></div>
-
 <div id="ctrls">
     <div class="c-btn" id="lB">⬅️</div>
     <div class="c-btn" id="rB">➡️</div>
 </div>
 
 <script>
-    let db = { c: parseInt(localStorage.getItem('as26_c'))||0, s: parseInt(localStorage.getItem('as26_s'))||1, id: 0, l: JSON.parse(localStorage.getItem('as26_l'))||[1,1,1] };
+    let db = { c: parseInt(localStorage.getItem('as27_c'))||0, s: parseInt(localStorage.getItem('as27_s'))||1, id: 0, l: JSON.parse(localStorage.getItem('as27_l'))||[1,1,1] };
     let game = false, hp = 3, kill = 0, isB = false, px = 50, bx = 50, bd = 1;
 
     function sync() {
-        localStorage.setItem('as26_c', db.c); localStorage.setItem('as26_s', db.s); localStorage.setItem('as26_l', JSON.stringify(db.l));
+        localStorage.setItem('as27_c', db.c); localStorage.setItem('as27_s', db.s); localStorage.setItem('as27_l', JSON.stringify(db.l));
         document.getElementById('coins').innerText = db.c; document.getElementById('stage').innerText = db.s;
         for(let i=0;i<3;i++) document.getElementById('lv'+i).innerText = db.l[i];
     }
 
     function sel(i) { db.id = i; document.querySelectorAll('.ship-box').forEach((b,x)=>b.className=x==i?'ship-box active':'ship-box'); sync(); }
-    function upgr() { if(db.c>=500) { db.c-=500; db.l[db.id]++; sync(); } }
+    
+    function upgr() { if(db.c>=500 && db.l[db.id]<5) { db.c-=500; db.l[db.id]++; sync(); } }
 
-    function go() {
+    function start() {
         document.getElementById('lobby').style.display='none';
         document.getElementById('ui').style.display='flex';
         document.getElementById('ctrls').style.display='flex';
         let p = document.getElementById('player');
         p.style.display='block';
-        p.innerHTML = document.querySelectorAll('.ship-art')[db.id].innerHTML;
+        p.innerHTML = document.querySelectorAll('.art')[db.id].innerHTML;
         game = true; hp = 3 + db.l[db.id]; kill = 0; isB = false; px = 50;
         upUI(); spawnE(); shoot();
     }
 
     function upUI() {
         document.getElementById('lives').innerText = "❤️".repeat(hp);
-        document.getElementById('g-coins').innerText = db.c;
-        document.getElementById('g-st').innerText = db.s;
+        document.getElementById('g-c').innerText = db.c;
+        document.getElementById('g-s').innerText = db.s;
     }
 
     function shoot() {
@@ -119,54 +109,56 @@
         b.style.left = (r.left + r.width/2 - 3) + 'px'; b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
         let m = setInterval(()=> {
-            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 15) + 'px';
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 18) + 'px';
             let bR = b.getBoundingClientRect();
             document.querySelectorAll('.enemy, .boss').forEach(en => {
                 let eR = en.getBoundingClientRect();
                 if(bR.left < eR.right && bR.right > eR.left && bR.top < eR.bottom && bR.bottom > eR.top) {
                     if(en.classList.contains('boss')) {
-                        en.hp -= db.l[db.id]; en.querySelector('.hp-f').style.width = (en.hp/en.max*100)+'%';
-                        if(en.hp<=0) { en.remove(); db.c+=1000; db.s++; location.reload(); }
-                    } else { en.remove(); db.c+=20; kill++; upUI(); if(kill==10) spawnB(); }
+                        en.hp -= (db.l[db.id] * 2); // قوة طلقات أعلى
+                        en.style.background = '#fff'; setTimeout(()=>en.style.background='var(--p)', 50);
+                        en.querySelector('.hp-f').style.width = (en.hp/en.max*100)+'%';
+                        if(en.hp<=0) { en.remove(); db.c+=1000; db.s++; alert("STAGE CLEAR!"); location.reload(); }
+                    } else { en.remove(); db.c+=30; kill++; upUI(); if(kill==10) spawnB(); }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, 400 - (db.l[db.id]*50));
+        setTimeout(shoot, Math.max(100, 400 - (db.l[db.id]*60)));
     }
 
     function spawnE() {
         if(!game || isB) return;
         let e = document.createElement('div'); e.className = 'enemy';
-        e.innerHTML = '<div class="e-art"><div class="e-p1"></div><div class="e-p2"></div></div>';
+        e.innerHTML = '<div class="e-shape"></div>';
         e.style.left = Math.random()*80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
         let m = setInterval(()=> {
             if(!game) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (db.s*0.2)) + 'px';
+            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (db.s*0.3)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
-                hp--; upUI(); e.remove(); clearInterval(m); if(hp<=0) location.reload();
+                hp--; upUI(); e.remove(); clearInterval(m); if(hp<=0) { alert("GAME OVER!"); location.reload(); }
             }
             if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnE(); }
         }, 20);
-        setTimeout(spawnE, 2000 - (db.s*100));
+        setTimeout(spawnE, 1800 - (db.s*100));
     }
 
     function spawnB() {
         isB = true; let b = document.createElement('div');
-        b.className = 'boss'; b.hp = 100 + (db.s*50); b.max = b.hp;
-        b.innerHTML = '<div class="hp-bar"><div class="hp-f"></div></div>';
-        b.style.top = '70px'; document.body.appendChild(b);
+        b.className = 'boss'; b.hp = 80 + (db.s*40); b.max = b.hp;
+        b.innerHTML = '<div class="hp-bar"><div class="hp-f"></div></div>👾';
+        b.style.top = '80px'; document.body.appendChild(b);
         let m = setInterval(()=> {
             if(!game) { b.remove(); clearInterval(m); return; }
-            bx += 2.5 * bd; if(bx > 80 || bx < 20) bd *= -1;
+            bx += (2 + db.s*0.2) * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.96) {
-                let bomb = document.createElement('div'); bomb.className = 'bomb';
-                bomb.style.left = bx + 'vw'; bomb.style.top = '150px';
+            if(Math.random() > 0.95) {
+                let bomb = document.createElement('div'); bomb.style.cssText = "position:absolute; width:25px; height:25px; background:#fff; border-radius:50%; box-shadow:0 0 20px var(--r); z-index:140;";
+                bomb.style.left = bx + 'vw'; bomb.style.top = '160px';
                 document.body.appendChild(bomb);
                 let bm = setInterval(()=> {
                     let bt = parseFloat(bomb.style.top); bomb.style.top = (bt+7)+'px';
@@ -175,4 +167,23 @@
                     if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
                         hp--; upUI(); bomb.remove(); clearInterval(bm); if(hp<=0) location.reload();
                     }
-                    if(
+                    if(bt > window.innerHeight) { bomb.remove(); clearInterval(bm); }
+                }, 20);
+            }
+        }, 40);
+    }
+
+    let mL = false, mR = false;
+    document.getElementById('lB').ontouchstart = (e) => { e.preventDefault(); mL = true; };
+    document.getElementById('lB').ontouchend = () => mL = false;
+    document.getElementById('rB').ontouchstart = (e) => { e.preventDefault(); mR = true; };
+    document.getElementById('rB').ontouchend = () => mR = false;
+    setInterval(()=> {
+        if(!game) return;
+        if(mL && px > 8) px -= 4.5; if(mR && px < 92) px += 4.5;
+        document.getElementById('player').style.left = px + '%';
+    }, 20);
+    sync();
+</script>
+</body>
+</html>
