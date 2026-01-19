@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V29 - THE AWAKENING</title>
+    <title>ASSER GALAXY V30 - THE FACE OF EVIL</title>
     <style>
         :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; --purple: #bc13fe; }
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; touch-action: none; user-select: none; }
         
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
-
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001233 0%, #000 100%); z-index: 1000; }
         .garage { display: flex; gap: 15px; margin: 20px 0; }
         .ship-box { border: 2px solid #333; padding: 10px; border-radius: 15px; width: 85px; text-align: center; background: rgba(0,0,0,0.6); }
         .ship-box.active { border-color: var(--blue); box-shadow: 0 0 20px var(--blue); transform: scale(1.1); }
-        .svg-icon { width: 50px; height: 50px; margin-bottom: 5px; }
+        .svg-icon { width: 50px; height: 50px; }
 
         .btn { padding: 15px 35px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 18px; box-shadow: 0 5px 15px rgba(0,242,255,0.4); }
 
@@ -22,12 +20,15 @@
         #player { position: absolute; bottom: 130px; width: 70px; height: 70px; z-index: 200; filter: drop-shadow(0 0 10px var(--blue)); }
         
         .bullet { position: absolute; width: 6px; height: 30px; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; }
+        
+        /* الأعداء الجدد بملامح */
         .enemy { position: absolute; width: 85px; height: 85px; z-index: 100; }
-        .bomb { position: absolute; width: 25px; height: 25px; background: #ffea00; border-radius: 50%; box-shadow: 0 0 20px var(--red); border: 2px solid #fff; }
-
-        .boss { position: absolute; width: 220px; height: 150px; z-index: 110; text-align: center; }
-        .hp-bar { width: 100%; height: 12px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
+        .e-face { position: relative; width: 100%; height: 100%; }
+        
+        .boss { position: absolute; width: 230px; height: 160px; z-index: 110; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .hp-bar { width: 90%; height: 12px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
         .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.2s; }
+        .boss-icon { font-size: 80px; filter: drop-shadow(0 0 20px var(--purple)); }
 
         #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 60px; z-index: 2000; }
         .ctrl-btn { width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 3px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; }
@@ -39,8 +40,7 @@
     <h1 style="color: var(--blue); font-size: 38px;">ASSER GALAXY</h1>
     <div style="color: var(--gold); margin-bottom: 20px;">💰 COINS: <span id="c-val">0</span> | STAGE: <span id="s-val">1</span></div>
     
-    <div class="garage" id="garage">
-        </div>
+    <div class="garage" id="garage"></div>
 
     <button class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
     <button class="btn" style="background: var(--gold); margin-top: 15px;" onclick="start()">BATTLE START</button>
@@ -102,16 +102,14 @@
         document.getElementById('ui').style.display = 'flex';
         document.getElementById('controls').style.display = 'flex';
         const p = document.getElementById('player');
-        p.style.display = 'block';
-        p.innerHTML = ships[state.shipId];
-        
-        active = true; lives = 3 + state.lvls[state.shipId];
+        p.style.display = 'block'; p.innerHTML = ships[state.shipId];
+        active = true; lives = 4 + state.lvls[state.shipId];
         kills = 0; isBoss = false; px = 50;
         updateUI(); spawnEnemy(); shoot();
     }
 
     function updateUI() {
-        document.getElementById('lives-ui').innerText = "❤️".repeat(lives);
+        document.getElementById('lives-ui').innerText = "❤️".repeat(Math.max(0, lives));
         document.getElementById('g-c').innerText = state.coins;
         document.getElementById('g-s').innerText = state.stage;
     }
@@ -125,15 +123,15 @@
         document.body.appendChild(b);
 
         let m = setInterval(() => {
-            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 18) + 'px';
+            let y = parseFloat(b.style.bottom); b.style.bottom = (y + 20) + 'px';
             let bR = b.getBoundingClientRect();
             document.querySelectorAll('.enemy, .boss').forEach(t => {
                 let tR = t.getBoundingClientRect();
                 if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
                     if(t.classList.contains('boss')) {
-                        t.hp -= state.lvls[state.shipId];
+                        t.hp -= (state.lvls[state.shipId] * 3); // ضربة أقوى 3 مرات
                         t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
-                        if(t.hp <= 0) { t.remove(); state.coins += 1000; state.stage++; location.reload(); }
+                        if(t.hp <= 0) { t.remove(); state.coins += 1200; state.stage++; location.reload(); }
                     } else {
                         t.remove(); state.coins += 25; kills++; updateUI();
                         if(kills === 10) spawnBoss();
@@ -143,13 +141,22 @@
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, Math.max(100, 450 - (state.lvls[state.shipId]*50)));
+        setTimeout(shoot, Math.max(80, 400 - (state.lvls[state.shipId]*60)));
     }
 
     function spawnEnemy() {
         if(!active || isBoss) return;
         const e = document.createElement('div'); e.className = 'enemy';
-        e.innerHTML = `<svg viewBox="0 0 100 100"><polygon points="20,0 80,0 100,50 80,100 20,100 0,50" fill="#ff0044" stroke="#fff" stroke-width="3"/></svg>`;
+        // عدو بـ عينين وبوق
+        e.innerHTML = `
+            <div class="e-face">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/>
+                    <circle cx="35" cy="40" r="8" fill="#fff"/> <circle cx="35" cy="40" r="3" fill="#000"/>
+                    <circle cx="65" cy="40" r="8" fill="#fff"/> <circle cx="65" cy="40" r="3" fill="#000"/>
+                    <path d="M30 70 Q50 90 70 70" fill="none" stroke="#fff" stroke-width="4"/>
+                </svg>
+            </div>`;
         e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
 
@@ -169,23 +176,27 @@
     function spawnBoss() {
         isBoss = true;
         const b = document.createElement('div'); b.className = 'boss';
-        b.hp = 100 + (state.stage * 60); b.max = b.hp;
-        b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div>
-                       <svg viewBox="0 0 200 100"><path d="M0 0 L200 0 L180 100 L100 70 L20 100 Z" fill="#bc13fe" stroke="#fff" stroke-width="4"/></svg>`;
+        b.hp = 80 + (state.stage * 30); b.max = b.hp; // صحة أقل بكتير
+        b.innerHTML = `
+            <div class="hp-bar"><div class="hp-fill"></div></div>
+            <div class="boss-icon">💀</div>
+            <div style="font-size:12px; color:var(--purple); font-weight:bold;">DEMON BOSS</div>
+        `;
         b.style.top = '80px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
         document.body.appendChild(b);
 
         setInterval(() => {
             if(!active) return;
-            bx += 2.5 * bd; if(bx > 80 || bx < 20) bd *= -1;
+            bx += 3 * bd; if(bx > 80 || bx < 20) bd *= -1;
             b.style.left = bx + '%';
-            if(Math.random() > 0.95) bossShoot(bx);
+            if(Math.random() > 0.96) bossShoot(bx);
         }, 50);
     }
 
     function bossShoot(x) {
-        const bomb = document.createElement('div'); bomb.className = 'bomb';
-        bomb.style.left = x + 'vw'; bomb.style.top = '150px';
+        const bomb = document.createElement('div');
+        bomb.style.cssText = "position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; box-shadow:0 0 15px var(--red);";
+        bomb.style.left = x + 'vw'; bomb.style.top = '170px';
         document.body.appendChild(bomb);
         let m = setInterval(() => {
             let t = parseFloat(bomb.style.top); bomb.style.top = (t + 8) + 'px';
@@ -206,7 +217,7 @@
     
     setInterval(() => {
         if(!active) return;
-        if(mL && px > 10) px -= 5; if(mR && px < 90) px += 5;
+        if(mL && px > 10) px -= 6; if(mR && px < 90) px += 6;
         document.getElementById('player').style.left = px + '%';
     }, 20);
 
