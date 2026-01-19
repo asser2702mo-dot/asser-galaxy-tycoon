@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASSER GALAXY V36 - MAX CHALLENGE</title>
+    <title>ASSER GALAXY V38 - PRECISE BALANCE</title>
     <style>
         :root { --blue: #00f2ff; --gold: #ffd700; --red: #ff0044; }
         body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; color: white; touch-action: none; user-select: none; }
         
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #001, #000); z-index: 1000; }
         .garage { display: flex; gap: 10px; margin: 20px 0; }
-        .ship-box { border: 2px solid #444; padding: 8px; border-radius: 12px; width: 80px; text-align: center; background: rgba(255,255,255,0.05); }
+        .ship-box { border: 2px solid #444; padding: 8px; border-radius: 12px; width: 75px; text-align: center; background: rgba(255,255,255,0.05); }
         .ship-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); transform: scale(1.05); }
         
         .btn { padding: 12px 30px; background: var(--blue); border: none; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; font-size: 16px; margin: 5px; }
-        .btn:disabled { background: #555; color: #ccc; cursor: not-allowed; }
+        .btn:disabled { background: #555; color: #ccc; }
 
-        #ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-weight: bold; font-size: 18px; }
+        #ui { position: absolute; top: 15px; width: 100%; display: none; justify-content: space-around; z-index: 500; font-weight: bold; }
         
-        #player { position: absolute; bottom: 120px; z-index: 200; transition: all 0.2s linear; display: flex; align-items: center; justify-content: center; }
-        .aura { position: absolute; width: 130%; height: 130%; border: 2px solid var(--blue); border-radius: 50%; opacity: 0; filter: blur(5px); }
+        #player { position: absolute; bottom: 120px; z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .aura { position: absolute; width: 130%; height: 130%; border: 2px solid var(--blue); border-radius: 50%; opacity: 0.3; filter: blur(4px); }
 
         .bullet { position: absolute; background: #fff; box-shadow: 0 0 10px var(--blue); border-radius: 5px; transform: translateX(-50%); }
-        .enemy { position: absolute; width: 70px; height: 70px; z-index: 100; }
+        .enemy { position: absolute; width: 65px; height: 65px; z-index: 100; }
         
         .boss { position: absolute; z-index: 110; display: flex; flex-direction: column; align-items: center; }
-        .hp-bar { width: 100%; height: 12px; background: #333; border: 1px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+        .hp-bar { width: 180px; height: 12px; background: #333; border: 1px solid #fff; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
         .hp-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.1s; }
-        .boss-art { font-size: 80px; filter: drop-shadow(0 0 15px var(--red)); }
+        .boss-art { font-size: 70px; filter: drop-shadow(0 0 15px var(--red)); }
 
         #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; gap: 40px; z-index: 2000; }
         .ctrl-btn { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; }
@@ -36,7 +36,7 @@
 <body>
 
 <div id="lobby" class="screen">
-    <h1 style="color: var(--blue); margin: 0; font-size: 28px;">ASSER GALAXY V36</h1>
+    <h1 style="color: var(--blue); margin: 0; font-size: 28px;">ASSER GALAXY V38</h1>
     <div style="color: var(--gold); margin: 10px 0;">💰 BANK: <span id="bank-val">0</span> | STAGE: <span id="stage-val">1</span></div>
     <div class="garage" id="garage"></div>
     <button id="up-btn" class="btn" onclick="upgrade()">UPGRADE (500 💰)</button>
@@ -44,7 +44,7 @@
 </div>
 
 <div id="win-screen" class="screen" style="display:none;">
-    <h1 style="color: var(--gold);">MISSION CLEAR!</h1>
+    <h1 style="color: var(--gold);">VICTORY!</h1>
     <p id="win-msg" style="font-size: 20px;"></p>
     <button class="btn" onclick="location.reload()">NEXT STAGE</button>
 </div>
@@ -56,10 +56,7 @@
 </div>
 
 <div id="player" style="display:none;"></div>
-<div id="controls">
-    <div class="ctrl-btn" id="lBtn">⬅️</div>
-    <div class="ctrl-btn" id="rBtn">➡️</div>
-</div>
+<div id="controls"><div class="ctrl-btn" id="lBtn">⬅️</div><div class="ctrl-btn" id="rBtn">➡️</div></div>
 
 <script>
     const shipBases = [
@@ -68,37 +65,32 @@
         `<svg viewBox="0 0 100 100"><path d="M10 20 L50 0 L90 20 L90 80 L50 100 L10 80 Z" fill="#fff"/><circle cx="50" cy="50" r="15" fill="#00f2ff"/></svg>`
     ];
 
-    const bossIcons = ["👹", "👾", "🤖", "🐉", "🛸", "👿", "👺", "🌑"];
+    const bossIcons = ["💀", "👽", "👻", "👹", "🤖", "👾", "🐉"];
 
     let state = {
-        coins: parseInt(localStorage.getItem('as_g36')) || 0,
-        stage: parseInt(localStorage.getItem('as_s36')) || 1,
-        shipId: parseInt(localStorage.getItem('as_sh36')) || 0,
-        lvls: JSON.parse(localStorage.getItem('as_l36')) || [1, 1, 1]
+        coins: parseInt(localStorage.getItem('as_v38_c')) || 0,
+        stage: parseInt(localStorage.getItem('as_v38_s')) || 1,
+        shipId: parseInt(localStorage.getItem('as_v38_i')) || 0,
+        lvls: JSON.parse(localStorage.getItem('as_v38_l')) || [1, 1, 1]
     };
 
     let active = false, lives = 5, sessCoins = 0, kills = 0, isBoss = false, px = 50, bx = 50, bd = 1;
 
     function save() {
-        localStorage.setItem('as_g36', state.coins);
-        localStorage.setItem('as_s36', state.stage);
-        localStorage.setItem('as_sh36', state.shipId);
-        localStorage.setItem('as_l36', JSON.stringify(state.lvls));
+        localStorage.setItem('as_v38_c', state.coins);
+        localStorage.setItem('as_v38_s', state.stage);
+        localStorage.setItem('as_v38_i', state.shipId);
+        localStorage.setItem('as_v38_l', JSON.stringify(state.lvls));
         updateLobbyUI();
     }
 
     function updateLobbyUI() {
         document.getElementById('bank-val').innerText = state.coins;
         document.getElementById('stage-val').innerText = state.stage;
-        
         const curLvl = state.lvls[state.shipId];
         const upBtn = document.getElementById('up-btn');
-        
-        if(curLvl >= 15) {
-            upBtn.innerText = "MAX LEVEL REACHED";
-            upBtn.disabled = true;
-        } else {
-            // سعر الترقية = 500 + (المستوى الحالي - 1) * 100
+        if(curLvl >= 15) { upBtn.innerText = "MAX LEVEL"; upBtn.disabled = true; }
+        else {
             const cost = 500 + (curLvl - 1) * 100;
             upBtn.innerText = `UPGRADE (${cost} 💰)`;
             upBtn.disabled = false;
@@ -109,23 +101,15 @@
     function renderGarage() {
         document.getElementById('garage').innerHTML = shipBases.map((s, i) => `
             <div class="ship-box ${state.shipId==i?'active':''}" onclick="state.shipId=${i};updateLobbyUI();">
-                <div style="width:40px;height:40px;margin:auto">${s}</div>
-                <div>Lv ${state.lvls[i]}</div>
+                <div style="width:35px;height:35px;margin:auto">${s}</div>
+                <div style="font-size:12px">Lv ${state.lvls[i]}</div>
             </div>`).join('');
     }
 
     function upgrade() {
         const curLvl = state.lvls[state.shipId];
-        if(curLvl >= 15) return;
-        
         const cost = 500 + (curLvl - 1) * 100;
-        if(state.coins >= cost) {
-            state.coins -= cost;
-            state.lvls[state.shipId]++;
-            save();
-        } else {
-            alert("محتاج فلوس أكتر!");
-        }
+        if(state.coins >= cost && curLvl < 15) { state.coins -= cost; state.lvls[state.shipId]++; save(); }
     }
 
     function startGame() {
@@ -141,11 +125,9 @@
     function updatePlayerLook() {
         const p = document.getElementById('player');
         const level = state.lvls[state.shipId];
-        // الحجم يتوقف عند ليفل 15
-        const size = 60 + (level * 4); 
-        p.style.display = 'flex';
-        p.style.width = size + 'px'; p.style.height = size + 'px';
-        p.innerHTML = (level > 5 ? `<div class="aura" style="opacity:${level*0.05}; border-width:${level/2}px;"></div>` : '') + shipBases[state.shipId];
+        const size = 55 + (level * 4); 
+        p.style.display = 'flex'; p.style.width = size + 'px'; p.style.height = size + 'px';
+        p.innerHTML = (level > 4 ? `<div class="aura"></div>` : '') + shipBases[state.shipId];
     }
 
     function updateUI() {
@@ -158,11 +140,9 @@
         if(!active) return;
         const level = state.lvls[state.shipId];
         const b = document.createElement('div'); b.className = 'bullet';
-        b.style.width = (5 + level * 1.2) + 'px';
-        b.style.height = (25 + level * 2) + 'px';
+        b.style.width = (5 + level * 1.2) + 'px'; b.style.height = (25 + level * 2) + 'px';
         const r = document.getElementById('player').getBoundingClientRect();
-        b.style.left = (r.left + r.width/2) + 'px';
-        b.style.bottom = (window.innerHeight - r.top) + 'px';
+        b.style.left = (r.left + r.width/2) + 'px'; b.style.bottom = (window.innerHeight - r.top) + 'px';
         document.body.appendChild(b);
 
         let m = setInterval(() => {
@@ -171,35 +151,35 @@
                 let tR = t.getBoundingClientRect(); let bR = b.getBoundingClientRect();
                 if(bR.left < tR.right && bR.right > tR.left && bR.top < tR.bottom && bR.bottom > tR.top) {
                     if(t.classList.contains('boss')) {
-                        t.hp -= (level * 4);
+                        t.hp -= (level * 5);
                         t.querySelector('.hp-fill').style.width = (t.hp/t.max*100)+'%';
                         if(t.hp <= 0) { 
                             t.remove(); active = false;
-                            state.coins += (sessCoins + 800); state.stage++; save();
+                            state.coins += (sessCoins + 750); state.stage++; save();
                             document.getElementById('win-screen').style.display='flex';
-                            document.getElementById('win-msg').innerText = "You Earned: " + (sessCoins + 800) + " 💰";
+                            document.getElementById('win-msg').innerText = "Reward: 750 💰";
                         }
                     } else {
                         t.remove(); sessCoins += 50; kills++; updateUI();
-                        if(kills === 10) spawnBoss(); 
+                        if(kills === 8) spawnBoss(); 
                     }
                     b.remove(); clearInterval(m);
                 }
             });
             if(y > window.innerHeight) { b.remove(); clearInterval(m); }
         }, 20);
-        setTimeout(shoot, Math.max(80, 450 - (level * 50)));
+        setTimeout(shoot, Math.max(70, 450 - (level * 55)));
     }
 
     function spawnEnemy() {
         if(!active || isBoss) return;
         const e = document.createElement('div'); e.className = 'enemy';
-        e.innerHTML = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/><path d="M20 30 L45 40 M80 30 L55 40" stroke="#000" stroke-width="6"/><circle cx="35" cy="50" r="6" fill="#000"/><circle cx="65" cy="50" r="6" fill="#000"/><path d="M30 80 Q50 60 70 80" fill="none" stroke="#000" stroke-width="5"/></svg>`;
+        e.innerHTML = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff0044" stroke="#fff" stroke-width="3"/><circle cx="35" cy="50" r="5" fill="#000"/><circle cx="65" cy="50" r="5" fill="#000"/><path d="M35 80 Q50 65 65 80" fill="none" stroke="#000" stroke-width="5"/></svg>`;
         e.style.left = Math.random() * 80 + 'vw'; e.style.top = '-100px';
         document.body.appendChild(e);
         let m = setInterval(() => {
             if(!active) { e.remove(); clearInterval(m); return; }
-            let t = parseFloat(e.style.top); e.style.top = (t + 4 + (state.stage * 0.6)) + 'px';
+            let t = parseFloat(e.style.top); e.style.top = (t + 3.5 + (state.stage * 0.4)) + 'px';
             let pR = document.getElementById('player').getBoundingClientRect();
             let eR = e.getBoundingClientRect();
             if(eR.left < pR.right && eR.right > pR.left && eR.top < pR.bottom && eR.bottom > pR.top) {
@@ -207,43 +187,48 @@
             }
             if(t > window.innerHeight) { e.remove(); clearInterval(m); spawnEnemy(); }
         }, 20);
-        setTimeout(spawnEnemy, Math.max(400, 1800 - (state.stage * 150)));
+        setTimeout(spawnEnemy, Math.max(500, 1800 - (state.stage * 100)));
     }
 
     function spawnBoss() {
         isBoss = true;
         const b = document.createElement('div'); b.className = 'boss';
-        // صعوبة البوس تتضاعف مع المراحل
-        b.hp = 200 + (state.stage * 120); 
-        b.max = b.hp;
-        let bSize = 180 + Math.min(100, (state.stage * 15)); 
-        b.style.width = bSize + 'px';
         
-        let icon = bossIcons[state.stage % bossIcons.length];
+        // --- تعديل آسر: زيادة الصحة 15% كل ليفل ---
+        let baseHp = 100;
+        b.hp = baseHp * Math.pow(1.15, state.stage - 1); 
+        b.max = b.hp;
+
+        let icon = bossIcons[(state.stage - 1) % bossIcons.length];
         b.innerHTML = `<div class="hp-bar"><div class="hp-fill"></div></div><div class="boss-art">${icon}</div>`;
         b.style.top = '70px'; b.style.left = '50%'; b.style.transform = 'translateX(-50%)';
         document.body.appendChild(b);
 
-        let moveSpeed = 3 + (state.stage * 0.8);
+        let bSpeed = 1.5 + (state.stage * 0.5);
         let bMove = setInterval(() => {
             if(!active) { clearInterval(bMove); return; }
-            bx += moveSpeed * bd; 
-            if(bx > 85 || bx < 15) bd *= -1;
+            bx += bSpeed * bd; if(bx > 85 || bx < 15) bd *= -1;
             b.style.left = bx + '%';
             
-            let chance = 0.92 - (state.stage * 0.015);
-            if(Math.random() > Math.max(0.75, chance)) bossShoot(bx);
+            let shootLimit = 0.94 - (state.stage * 0.01);
+            if(Math.random() > Math.max(0.80, shootLimit)) bossShoot(bx);
         }, 50);
     }
 
     function bossShoot(x) {
         const bomb = document.createElement('div');
-        bomb.style.cssText = `position:absolute; width:25px; height:25px; background:yellow; border-radius:50%; border:3px solid white; z-index:150;`;
-        bomb.style.left = x + 'vw'; bomb.style.top = '180px';
+        bomb.style.cssText = `position:absolute; width:22px; height:22px; background:white; border-radius:50%; border:3px solid var(--red); z-index:150;`;
+        bomb.style.left = x + 'vw'; bomb.style.top = '170px';
         document.body.appendChild(bomb);
+        
         let m = setInterval(() => {
             let t = parseFloat(bomb.style.top); 
-            bomb.style.top = (t + 10 + (state.stage * 0.7)) + 'px';
+            // --- تعديل آسر: زيادة سرعة الطلقات 5% كل ليفل ---
+            let baseBulletSpeed = 8;
+            let currentBulletSpeed = baseBulletSpeed * Math.pow(1.05, state.stage - 1);
+            
+            bomb.style.top = (t + currentBulletSpeed) + 'px';
+            
             let pR = document.getElementById('player').getBoundingClientRect();
             let bR = bomb.getBoundingClientRect();
             if(bR.left < pR.right && bR.right > pR.left && bR.top < pR.bottom && bR.bottom > pR.top) {
@@ -261,7 +246,7 @@
     
     setInterval(() => {
         if(!active) return;
-        if(mL && px > 8) px -= 6.5; if(mR && px < 92) px += 6.5;
+        if(mL && px > 8) px -= 6; if(mR && px < 92) px += 6;
         document.getElementById('player').style.left = px + '%';
     }, 20);
 
